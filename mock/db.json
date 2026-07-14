@@ -1,0 +1,427 @@
+{
+  "home": {
+    "banners": [
+      {
+        "id": "bn-1",
+        "title": "Free video consult for first booking",
+        "subtitle": "Use code FIRSTFREE",
+        "imageUrl": "https://cdn.example.com/banners/first-free.jpg",
+        "cta": { "label": "Book now", "route": "/doctors?consultationType=video" }
+      },
+      {
+        "id": "bn-2",
+        "title": "Heart health checkup camp",
+        "subtitle": "20% off till 30 June",
+        "imageUrl": "https://cdn.example.com/banners/heart-camp.jpg",
+        "cta": { "label": "View cardiologists", "route": "/doctors?specialtyId=sp-002" }
+      }
+    ],
+    "quickActions": [
+      { "id": "qa-1", "label": "Find doctor", "icon": "search", "route": "/doctors" },
+      { "id": "qa-2", "label": "Video consult", "icon": "video", "route": "/doctors?consultationType=video" },
+      { "id": "qa-3", "label": "My appointments", "icon": "calendar", "route": "/appointments" },
+      { "id": "qa-4", "label": "Lab reports", "icon": "file", "route": "/reports" }
+    ]
+  },
+  "specialties": [
+    { "id": "sp-001", "name": "General Physician", "icon": "stethoscope", "doctorCount": 42, "symptoms": ["fever", "cold", "headache"] },
+    { "id": "sp-002", "name": "Cardiologist", "icon": "heart", "doctorCount": 18, "symptoms": ["chest pain", "palpitations", "high bp"] },
+    { "id": "sp-003", "name": "Dermatologist", "icon": "skin", "doctorCount": 24, "symptoms": ["acne", "rash", "hair fall"] },
+    { "id": "sp-004", "name": "Pediatrician", "icon": "baby", "doctorCount": 31, "symptoms": ["child fever", "vaccination"] },
+    { "id": "sp-005", "name": "Orthopedic", "icon": "bone", "doctorCount": 15, "symptoms": ["back pain", "knee pain", "fracture"] },
+    { "id": "sp-006", "name": "Gynecologist", "icon": "female", "doctorCount": 22, "symptoms": ["pregnancy", "pcos"] },
+    { "id": "sp-007", "name": "ENT", "icon": "ear", "doctorCount": 19, "symptoms": ["ear pain", "sinus", "sore throat"] },
+    { "id": "sp-008", "name": "Psychiatrist", "icon": "brain", "doctorCount": 11, "symptoms": ["anxiety", "depression", "sleep issues"] }
+  ],
+  "symptoms": [
+    { "id": "sym-01", "name": "Chest pain", "specialtyId": "sp-002", "specialtyName": "Cardiologist" },
+    { "id": "sym-02", "name": "Skin rash", "specialtyId": "sp-003", "specialtyName": "Dermatologist" },
+    { "id": "sym-03", "name": "Back pain", "specialtyId": "sp-005", "specialtyName": "Orthopedic" },
+    { "id": "sym-04", "name": "Fever", "specialtyId": "sp-001", "specialtyName": "General Physician" },
+    { "id": "sym-05", "name": "Anxiety", "specialtyId": "sp-008", "specialtyName": "Psychiatrist" }
+  ],
+  "searchSuggestions": [
+    { "id": "sug-1", "type": "doctor", "label": "Dr. Ananya Sharma", "subtitle": "Cardiologist · Apollo Heart Care", "doctorId": "doc-101" },
+    { "id": "sug-2", "type": "specialty", "label": "Cardiologist", "subtitle": "18 doctors", "specialtyId": "sp-002" },
+    { "id": "sug-3", "type": "symptom", "label": "Chest pain", "subtitle": "See cardiologists", "symptomId": "sym-01" },
+    { "id": "sug-4", "type": "clinic", "label": "Apollo Heart Care", "subtitle": "Bannerghatta Road", "clinicId": "clinic-501" }
+  ],
+  "cities": [
+    { "id": "city-blr", "name": "Bangalore", "state": "Karnataka", "doctorCount": 420 },
+    { "id": "city-del", "name": "Delhi", "state": "Delhi", "doctorCount": 680 },
+    { "id": "city-mum", "name": "Mumbai", "state": "Maharashtra", "doctorCount": 540 },
+    { "id": "city-hyd", "name": "Hyderabad", "state": "Telangana", "doctorCount": 310 }
+  ],
+  "filters": {
+    "consultationTypes": [
+      { "id": "video", "label": "Video consult" },
+      { "id": "in-clinic", "label": "In-clinic visit" }
+    ],
+    "feeRange": { "min": 200, "max": 2500, "currency": "INR", "step": 100 },
+    "experienceYears": [
+      { "id": "exp-5", "label": "5+ years", "min": 5 },
+      { "id": "exp-10", "label": "10+ years", "min": 10 },
+      { "id": "exp-15", "label": "15+ years", "min": 15 }
+    ],
+    "ratings": [
+      { "id": "r-4", "label": "4.0 & above", "min": 4 },
+      { "id": "r-45", "label": "4.5 & above", "min": 4.5 }
+    ],
+    "languages": ["English", "Hindi", "Kannada", "Tamil", "Telugu", "Malayalam"],
+    "genders": [
+      { "id": "male", "label": "Male doctor" },
+      { "id": "female", "label": "Female doctor" }
+    ],
+    "availability": [
+      { "id": "today", "label": "Available today" },
+      { "id": "tomorrow", "label": "Available tomorrow" },
+      { "id": "weekend", "label": "Available this weekend" }
+    ]
+  },
+  "clinics": [
+    {
+      "id": "clinic-501",
+      "name": "Apollo Heart Care",
+      "type": "Hospital",
+      "address": "No. 154/11, Bannerghatta Road, Bangalore - 560076",
+      "city": "Bangalore",
+      "latitude": 12.9141,
+      "longitude": 77.6101,
+      "phone": "+91-80-1234-5678",
+      "rating": 4.7,
+      "doctorCount": 24,
+      "facilities": ["Parking", "Pharmacy", "Lab", "Emergency"],
+      "imageUrl": "https://cdn.example.com/clinics/apollo-heart.jpg"
+    },
+    {
+      "id": "clinic-502",
+      "name": "SkinCare Plus Clinic",
+      "type": "Clinic",
+      "address": "Indiranagar 100ft Road, Bangalore - 560038",
+      "city": "Bangalore",
+      "latitude": 12.9784,
+      "longitude": 77.6408,
+      "phone": "+91-80-9876-5432",
+      "rating": 4.5,
+      "doctorCount": 8,
+      "facilities": ["Parking", "Cosmetic procedures"],
+      "imageUrl": "https://cdn.example.com/clinics/skincare-plus.jpg"
+    }
+  ],
+  "doctors": [
+    {
+      "id": "doc-101",
+      "fullName": "Dr. Ananya Sharma",
+      "gender": "female",
+      "title": "MD, DM (Cardiology)",
+      "specialtyId": "sp-002",
+      "specialtyName": "Cardiologist",
+      "clinicId": "clinic-501",
+      "avatarUrl": "https://cdn.example.com/doctors/doc-101.jpg",
+      "rating": 4.8,
+      "reviewCount": 312,
+      "experienceYears": 12,
+      "consultationFee": 800,
+      "videoFee": 700,
+      "currency": "INR",
+      "clinicName": "Apollo Heart Care",
+      "city": "Bangalore",
+      "latitude": 12.9141,
+      "longitude": 77.6101,
+      "distanceKm": 2.4,
+      "consultationTypes": ["video", "in-clinic"],
+      "availableToday": true,
+      "nextAvailableSlot": "2026-06-25T14:30:00+05:30",
+      "badges": ["Top rated", "15+ yrs exp"],
+      "about": "Senior cardiologist specializing in preventive cardiology and heart failure management.",
+      "languages": ["English", "Hindi", "Kannada"],
+      "registrationNumber": "KMC-12345",
+      "isVerified": true,
+      "isFeatured": true
+    },
+    {
+      "id": "doc-102",
+      "fullName": "Dr. Rohit Mehta",
+      "gender": "male",
+      "title": "MD (Cardiology)",
+      "specialtyId": "sp-002",
+      "specialtyName": "Cardiologist",
+      "clinicId": "clinic-501",
+      "avatarUrl": "https://cdn.example.com/doctors/doc-102.jpg",
+      "rating": 4.6,
+      "reviewCount": 189,
+      "experienceYears": 9,
+      "consultationFee": 650,
+      "videoFee": null,
+      "currency": "INR",
+      "clinicName": "City Cardiac Center",
+      "city": "Bangalore",
+      "latitude": 12.9352,
+      "longitude": 77.6245,
+      "distanceKm": 5.1,
+      "consultationTypes": ["in-clinic"],
+      "availableToday": true,
+      "nextAvailableSlot": "2026-06-25T16:00:00+05:30",
+      "badges": ["Verified"],
+      "about": "Interventional cardiologist with focus on angioplasty and cardiac imaging.",
+      "languages": ["English", "Hindi"],
+      "registrationNumber": "KMC-23456",
+      "isVerified": true,
+      "isFeatured": false
+    },
+    {
+      "id": "doc-103",
+      "fullName": "Dr. Priya Nair",
+      "gender": "female",
+      "title": "DM (Cardiology)",
+      "specialtyId": "sp-002",
+      "specialtyName": "Cardiologist",
+      "clinicId": "clinic-501",
+      "avatarUrl": "https://cdn.example.com/doctors/doc-103.jpg",
+      "rating": 4.9,
+      "reviewCount": 421,
+      "experienceYears": 15,
+      "consultationFee": 1200,
+      "videoFee": 1000,
+      "currency": "INR",
+      "clinicName": "Fortis Heart Institute",
+      "city": "Bangalore",
+      "latitude": 12.9698,
+      "longitude": 77.7499,
+      "distanceKm": 8.0,
+      "consultationTypes": ["video", "in-clinic"],
+      "availableToday": false,
+      "nextAvailableSlot": "2026-06-26T10:00:00+05:30",
+      "badges": ["Top rated", "Video consult"],
+      "about": "Expert in electrophysiology and arrhythmia management.",
+      "languages": ["English", "Malayalam", "Tamil"],
+      "registrationNumber": "KMC-34567",
+      "isVerified": true,
+      "isFeatured": true
+    },
+    {
+      "id": "doc-201",
+      "fullName": "Dr. Kavita Reddy",
+      "gender": "female",
+      "title": "MD (Dermatology)",
+      "specialtyId": "sp-003",
+      "specialtyName": "Dermatologist",
+      "clinicId": "clinic-502",
+      "avatarUrl": "https://cdn.example.com/doctors/doc-201.jpg",
+      "rating": 4.7,
+      "reviewCount": 256,
+      "experienceYears": 10,
+      "consultationFee": 600,
+      "videoFee": 500,
+      "currency": "INR",
+      "clinicName": "SkinCare Plus Clinic",
+      "city": "Bangalore",
+      "latitude": 12.9784,
+      "longitude": 77.6408,
+      "distanceKm": 3.2,
+      "consultationTypes": ["video", "in-clinic"],
+      "availableToday": true,
+      "nextAvailableSlot": "2026-06-25T11:00:00+05:30",
+      "badges": ["Top rated"],
+      "about": "Treats acne, eczema, psoriasis, and cosmetic dermatology.",
+      "languages": ["English", "Kannada", "Telugu"],
+      "registrationNumber": "KMC-45678",
+      "isVerified": true,
+      "isFeatured": true
+    },
+    {
+      "id": "doc-301",
+      "fullName": "Dr. Arvind Patel",
+      "gender": "male",
+      "title": "MBBS, MD (General Medicine)",
+      "specialtyId": "sp-001",
+      "specialtyName": "General Physician",
+      "clinicId": "clinic-502",
+      "avatarUrl": "https://cdn.example.com/doctors/doc-301.jpg",
+      "rating": 4.5,
+      "reviewCount": 98,
+      "experienceYears": 7,
+      "consultationFee": 400,
+      "videoFee": 350,
+      "currency": "INR",
+      "clinicName": "City Health Clinic",
+      "city": "Bangalore",
+      "latitude": 12.9716,
+      "longitude": 77.5946,
+      "distanceKm": 1.8,
+      "consultationTypes": ["video", "in-clinic"],
+      "availableToday": true,
+      "nextAvailableSlot": "2026-06-25T09:30:00+05:30",
+      "badges": ["Budget friendly"],
+      "about": "Primary care, diabetes management, and general wellness.",
+      "languages": ["English", "Hindi", "Gujarati"],
+      "registrationNumber": "KMC-56789",
+      "isVerified": true,
+      "isFeatured": false
+    }
+  ],
+  "doctorServices": [
+    { "doctorId": "doc-101", "id": "svc-1", "name": "ECG interpretation", "fee": 500, "durationMinutes": 20 },
+    { "doctorId": "doc-101", "id": "svc-2", "name": "Heart health package", "fee": 2500, "durationMinutes": 45 },
+    { "doctorId": "doc-101", "id": "svc-3", "name": "Follow-up consult", "fee": 500, "durationMinutes": 15 },
+    { "doctorId": "doc-201", "id": "svc-4", "name": "Acne treatment plan", "fee": 800, "durationMinutes": 30 },
+    { "doctorId": "doc-201", "id": "svc-5", "name": "Skin allergy test consult", "fee": 600, "durationMinutes": 25 }
+  ],
+  "doctorGallery": [
+    { "doctorId": "doc-101", "id": "gal-1", "url": "https://cdn.example.com/gallery/doc-101-clinic.jpg", "caption": "Consultation room" },
+    { "doctorId": "doc-101", "id": "gal-2", "url": "https://cdn.example.com/gallery/doc-101-team.jpg", "caption": "Care team" },
+    { "doctorId": "doc-201", "id": "gal-3", "url": "https://cdn.example.com/gallery/doc-201-laser.jpg", "caption": "Laser treatment unit" }
+  ],
+  "reviews": [
+    { "id": "rev-9001", "doctorId": "doc-101", "patientName": "Rahul K.", "rating": 5, "comment": "Very thorough consultation. Explained my ECG results clearly.", "consultationType": "video", "createdAt": "2026-06-20T09:15:00+05:30" },
+    { "id": "rev-9002", "doctorId": "doc-101", "patientName": "Meera S.", "rating": 5, "comment": "Short wait time at clinic. Professional staff.", "consultationType": "in-clinic", "createdAt": "2026-06-18T17:40:00+05:30" },
+    { "id": "rev-9003", "doctorId": "doc-101", "patientName": "Arjun P.", "rating": 4, "comment": "Good advice on lifestyle changes. Would recommend.", "consultationType": "video", "createdAt": "2026-06-15T11:20:00+05:30" },
+    { "id": "rev-9004", "doctorId": "doc-201", "patientName": "Sneha T.", "rating": 5, "comment": "Acne cleared in 6 weeks. Very patient doctor.", "consultationType": "in-clinic", "createdAt": "2026-06-22T14:00:00+05:30" }
+  ],
+  "availability": [
+    {
+      "doctorId": "doc-101",
+      "date": "2026-06-25",
+      "consultationType": "video",
+      "slots": [
+        { "id": "slot-001", "startTime": "10:00", "endTime": "10:30", "available": true },
+        { "id": "slot-002", "startTime": "10:30", "endTime": "11:00", "available": false },
+        { "id": "slot-004", "startTime": "14:30", "endTime": "15:00", "available": true },
+        { "id": "slot-005", "startTime": "15:00", "endTime": "15:30", "available": true }
+      ]
+    },
+    {
+      "doctorId": "doc-201",
+      "date": "2026-06-25",
+      "consultationType": "in-clinic",
+      "slots": [
+        { "id": "slot-101", "startTime": "11:00", "endTime": "11:30", "available": true },
+        { "id": "slot-102", "startTime": "11:30", "endTime": "12:00", "available": true },
+        { "id": "slot-103", "startTime": "12:00", "endTime": "12:30", "available": false }
+      ]
+    }
+  ],
+  "availabilitySummary": [
+    { "doctorId": "doc-101", "date": "2026-06-25", "availableSlotsCount": 5, "hasAvailability": true },
+    { "doctorId": "doc-101", "date": "2026-06-26", "availableSlotsCount": 8, "hasAvailability": true },
+    { "doctorId": "doc-101", "date": "2026-06-27", "availableSlotsCount": 0, "hasAvailability": false },
+    { "doctorId": "doc-101", "date": "2026-06-28", "availableSlotsCount": 3, "hasAvailability": true }
+  ],
+  "users": [
+    {
+      "id": "user-1",
+      "name": "Vikram Desai",
+      "phone": "+919876543210",
+      "email": "vikram@example.com",
+      "avatarUrl": null,
+      "cityId": "city-blr",
+      "createdAt": "2026-01-10T08:00:00+05:30"
+    }
+  ],
+  "patients": [
+    {
+      "id": "pat-1",
+      "userId": "user-1",
+      "name": "Vikram Desai",
+      "relation": "self",
+      "age": 34,
+      "gender": "male",
+      "phone": "+919876543210",
+      "isDefault": true
+    },
+    {
+      "id": "pat-2",
+      "userId": "user-1",
+      "name": "Anita Desai",
+      "relation": "spouse",
+      "age": 32,
+      "gender": "female",
+      "phone": "+919876543211",
+      "isDefault": false
+    },
+    {
+      "id": "pat-3",
+      "userId": "user-1",
+      "name": "Aarav Desai",
+      "relation": "child",
+      "age": 6,
+      "gender": "male",
+      "phone": null,
+      "isDefault": false
+    }
+  ],
+  "favorites": [
+    { "userId": "user-1", "doctorId": "doc-103", "savedAt": "2026-06-10T12:00:00+05:30" }
+  ],
+  "appointments": [
+    {
+      "id": "apt-77821",
+      "userId": "user-1",
+      "patientId": "pat-1",
+      "doctorId": "doc-101",
+      "status": "confirmed",
+      "scheduledAt": "2026-06-25T14:30:00+05:30",
+      "consultationType": "video",
+      "reason": "Chest discomfort follow-up",
+      "fee": 700,
+      "currency": "INR",
+      "paid": true,
+      "confirmationCode": "APT77821",
+      "meetingLink": "https://meet.example.com/apt-77821",
+      "createdAt": "2026-06-25T10:05:00+05:30"
+    },
+    {
+      "id": "apt-77800",
+      "userId": "user-1",
+      "patientId": "pat-2",
+      "doctorId": "doc-201",
+      "status": "completed",
+      "scheduledAt": "2026-06-10T11:00:00+05:30",
+      "consultationType": "in-clinic",
+      "reason": "Skin allergy",
+      "fee": 600,
+      "currency": "INR",
+      "paid": true,
+      "confirmationCode": "APT77800",
+      "meetingLink": null,
+      "createdAt": "2026-06-08T09:00:00+05:30"
+    }
+  ],
+  "paymentMethods": [
+    { "id": "pm-upi", "type": "upi", "label": "UPI", "icons": ["gpay", "phonepe", "paytm"] },
+    { "id": "pm-card", "type": "card", "label": "Credit / Debit card", "icons": ["visa", "mastercard", "rupay"] },
+    { "id": "pm-wallet", "type": "wallet", "label": "Wallet", "icons": ["paytm", "amazonpay"] },
+    { "id": "pm-cod", "type": "cod", "label": "Pay at clinic", "icons": [] }
+  ],
+  "coupons": [
+    { "id": "cpn-1", "code": "FIRSTFREE", "title": "₹200 off first video consult", "discountType": "flat", "discountValue": 200, "minFee": 500, "validTill": "2026-12-31", "applicableSpecialtyIds": ["sp-001", "sp-002", "sp-003"] },
+    { "id": "cpn-2", "code": "HEART20", "title": "20% off cardiologist visit", "discountType": "percent", "discountValue": 20, "maxDiscount": 300, "validTill": "2026-06-30", "applicableSpecialtyIds": ["sp-002"] }
+  ],
+  "insuranceProviders": [
+    { "id": "ins-1", "name": "Star Health", "logoUrl": "https://cdn.example.com/insurance/star.png", "cashless": true },
+    { "id": "ins-2", "name": "ICICI Lombard", "logoUrl": "https://cdn.example.com/insurance/icici.png", "cashless": true },
+    { "id": "ins-3", "name": "HDFC ERGO", "logoUrl": "https://cdn.example.com/insurance/hdfc.png", "cashless": false }
+  ],
+  "notifications": [
+    {
+      "id": "notif-1",
+      "userId": "user-1",
+      "type": "appointment_reminder",
+      "title": "Appointment in 2 hours",
+      "body": "Video consult with Dr. Ananya Sharma at 2:30 PM",
+      "read": false,
+      "createdAt": "2026-06-25T12:30:00+05:30",
+      "data": { "appointmentId": "apt-77821" }
+    },
+    {
+      "id": "notif-2",
+      "userId": "user-1",
+      "type": "review_request",
+      "title": "How was your visit?",
+      "body": "Rate your experience with Dr. Kavita Reddy",
+      "read": true,
+      "createdAt": "2026-06-11T10:00:00+05:30",
+      "data": { "appointmentId": "apt-77800", "doctorId": "doc-201" }
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "/api/v1/*": "/$1",
+  "/api/v1/doctors/:id/availability/summary": "/availabilitySummary?doctorId=:id",
+  "/api/v1/doctors/:id/availability": "/availability?doctorId=:id",
+  "/api/v1/doctors/:id/reviews": "/reviews?doctorId=:id",
+  "/api/v1/doctors/:id/services": "/doctorServices?doctorId=:id",
+  "/api/v1/doctors/:id/gallery": "/doctorGallery?doctorId=:id",
+  "/api/v1/doctors/:id/similar": "/doctors?specialtyId=sp-002&_limit=3",
+  "/api/v1/search/suggestions": "/searchSuggestions",
+  "/api/v1/locations/cities": "/cities",
+  "/api/v1/insurance/providers": "/insuranceProviders",
+  "/api/v1/payment-methods": "/paymentMethods"
+}
