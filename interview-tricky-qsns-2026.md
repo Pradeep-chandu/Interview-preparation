@@ -16,6 +16,7 @@
 | **VI** | [Node.js Tricky Questions](#part-vi--nodejs-tricky-questions) | 53–60 |
 | **VII** | [MongoDB Tricky Questions](#part-vii--mongodb-tricky-questions) | 61–68 |
 | **VIII** | [Output Prediction Drills](#part-viii--output-prediction-drills) | 69–80 |
+| **IX** | [Aug 2026 Release Traps](#aug-2026-release-traps-8183) | 81–83 |
 
 ---
 
@@ -1033,6 +1034,45 @@ Quick-fire — cover the answer, guess, then check.
 
 ---
 
+## Aug 2026 Release Traps (81–83)
+
+### 81. What is `Math.sumPrecise([0.1, 0.2, 0.3])` vs reduce sum?
+
+**Answer:** `Math.sumPrecise` (ES2026) uses compensated summation → **0.6** (stable). Naive `reduce((a,b)=>a+b,0)` can yield **0.5999999999999999** due to IEEE-754 accumulation.
+
+```javascript
+Math.sumPrecise([0.1, 0.2, 0.3]);                    // 0.6
+[0.1, 0.2, 0.3].reduce((a, b) => a + b, 0);          // 0.5999999999999999
+```
+
+### 82. `foreignErr instanceof Error` in vm context — true or false?
+
+**Answer:** **false** — different realm/global. **`Error.isError(foreignErr)`** (ES2026) → **true**. Classic micro-frontend / worker error-handling trap.
+
+```javascript
+import vm from 'node:vm';
+const ctx = vm.createContext({});
+const e = vm.runInContext('new Error("x")', ctx);
+e instanceof Error;  // false
+Error.isError(e);    // true
+```
+
+### 83. `map.getOrInsert('k', expensive())` — is `expensive()` skipped if key exists?
+
+**Answer:** **No** — JavaScript evaluates arguments **before** the call. `getOrInsert` only *uses* the value if the key is missing, but `expensive()` already ran. For lazy computation use **`getOrInsertComputed(k, () => expensive())`** — callback runs only when the key is absent.
+
+```javascript
+let calls = 0;
+const expensive = () => { calls++; return 99; };
+const m = new Map([['k', 1]]);
+
+m.getOrInsert('k', expensive());           // returns 1, but calls === 1 (expensive ran!)
+m.getOrInsertComputed('k', () => expensive()); // returns 1, calls still 1
+m.getOrInsertComputed('x', () => expensive()); // inserts 99, calls === 2
+```
+
+---
+
 ## Study Tips
 
 1. **Run every example** in Node REPL or browser console — muscle memory beats memorization.
@@ -1043,4 +1083,4 @@ Quick-fire — cover the answer, guess, then check.
 
 ---
 
-*Last updated: June 2026 · Companion to `interview-prep-2026.md`*
+*Last updated: August 5, 2026 · Companion to `interview-prep-2026.md` (400 Q)*

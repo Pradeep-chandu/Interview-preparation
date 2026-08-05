@@ -1,4 +1,4 @@
-# JavaScript · Node.js · MongoDB — 360 Interview Q&A (2026 Complete Guide)
+# JavaScript · Node.js · MongoDB — 400 Interview Q&A (2026 Complete Guide)
 
 > Each question includes an elaborated answer and a practical code example. Structured by topic and difficulty.
 
@@ -9,7 +9,7 @@
 | Part | Section | Questions |
 |------|---------|-----------|
 | **I** | [Core Fundamentals](#part-i--core-fundamentals) | |
-| | JavaScript | 1–79 |
+| JavaScript | 1–79, **361–366, 369, 374–376, 379** |
 | | Node.js | 80–157 |
 | | MongoDB | 158–225 |
 | **II** | [Senior — System Design & Architecture](#part-ii--senior--system-design--architecture) | |
@@ -28,11 +28,19 @@
 | | React Essentials | 316–320 |
 | | LeetCode Patterns | 321–325 |
 | **IV** | [Extended Topics — 2026 Complete](#part-iv--extended-topics--2026-complete) | |
-| | Modern JavaScript ES2023–2025 | 326–334 |
+| | Modern JavaScript ES2023–2026 | 326–334, **381–389, 399** |
 | | Message Queues & Async Jobs | 335–340 |
 | | ORMs & Data Access | 341–348 |
 | | Kubernetes Hands-On | 349–354 |
 | | Cloud & CI/CD | 355–360 |
+| **V** | [Missing Topics — Gap Fill](#part-v--missing-topics--gap-fill) | |
+| | JavaScript gaps | 361–366, 369, 374–376, 379 |
+| | Node.js gaps | 363–365, 370–373, 377 |
+| | MongoDB gaps | 367–368, 378, 380 |
+| **VI** | [Mid-2026 Release Updates (Aug 2026)](#part-vi--mid-2026-release-updates-aug-2026) | |
+| | ECMAScript 2026 (ratified Jun 30) | 381–389, 399 |
+| | Node.js 24 LTS | 390–393, 400 |
+| | MongoDB 8.0 / 8.3 | 394–398 |
 | **Appendix** | [Study Guide & Learning Plans](#appendix--study-guide--learning-plans) | |
 
 ---
@@ -815,9 +823,18 @@ console.log(priceCache.get('sku-1'), priceCache.size);
 ```
 
 ---
-### 42. What is Set?
+### 42. What is Set? Set vs WeakSet?
 
-**Answer:** A `Set` stores unique values of any type. Duplicates are ignored by strict equality. Common uses include deduplication, membership tests, and tracking visited nodes.
+**Answer:** A `Set` stores unique values of any type (primitives or objects). Duplicates are ignored by `SameValueZero`. Common uses: deduplication, membership tests, visited nodes.
+
+A `WeakSet` holds only **objects**. References are **weak**: if nothing else points to an object, it can be garbage-collected and drops out of the WeakSet. WeakSet is not iterable, has no `.size`, and only supports `.add`, `.has`, and `.delete`. Use it to tag objects (e.g. “already processed”) without preventing GC — same idea as `WeakMap`, but for membership instead of key→value.
+
+| | Set | WeakSet |
+|--|-----|---------|
+| Values | Any type | Objects only |
+| Iterable / `.size` | Yes | No |
+| GC | Strong refs — keeps values alive | Weak refs — values can be GC’d |
+| Typical use | Unique lists, algorithms | Object tagging without leaks |
 
 **Example:**
 ```javascript
@@ -826,6 +843,14 @@ const unique = [...new Set(tags)];
 const viewed = new Set();
 ['p1','p2','p1'].forEach(id => viewed.add(id));
 console.log(unique, viewed.size); // ['sale','new','featured'] 2
+
+// WeakSet: mark DOM/nodes/objects as seen without retaining them
+const processed = new WeakSet();
+function handleOrder(order) {
+  if (processed.has(order)) return;
+  processed.add(order);
+  // ... process once; when `order` is unreachable, WeakSet entry can be GC'd
+}
 ```
 
 ---
@@ -1059,13 +1084,18 @@ clearInterval(id);
 ---
 ### 60. Garbage collection?
 
-**Answer:** JavaScript engines like V8 use automatic garbage collection, primarily mark-and-sweep, to reclaim memory from unreachable objects. Developers do not manually free memory but must avoid retaining references that prevent collection.
+**Answer:** JavaScript engines like V8 use automatic garbage collection, primarily mark-and-sweep, to reclaim memory from unreachable objects. Developers do not manually free memory but must avoid retaining references that prevent collection. Prefer `WeakMap` / `WeakSet` when you attach metadata or tags to objects and want those entries to disappear when the objects become unreachable (unlike `Map` / `Set`, which keep strong references).
 
 **Example:**
 ```javascript
 function processOrders(orders) {
-  const cache = new WeakMap(); // keys can be GC'd when orders objects are gone
-  orders.forEach(o => cache.set(o, computeTotal(o)));
+  const cache = new WeakMap(); // keys can be GC'd when order objects are gone
+  const seen = new WeakSet();  // membership only; also weak
+  orders.forEach(o => {
+    if (seen.has(o)) return;
+    seen.add(o);
+    cache.set(o, computeTotal(o));
+  });
   return orders.map(o => cache.get(o));
 }
 ```
@@ -1211,14 +1241,15 @@ self.addEventListener('fetch', (event) => {
 ---
 ### 70. Temporal API?
 
-**Answer:** The Temporal API is the modern replacement for the flawed `Date` object, providing `PlainDate`, `ZonedDateTime`, and explicit timezone handling. It is stage-3+ and available via polyfills (`@js-temporal/polyfill`) until universal runtime support.
+**Answer:** The **Temporal API** replaces the flawed `Date` object with immutable types (`PlainDate`, `PlainTime`, `ZonedDateTime`) and explicit timezone/calendar handling. **ECMAScript 2026** (ratified **June 30, 2026**) includes Temporal in the spec; it ships natively in **Chrome 131+**, **Firefox 134+**, and **Node.js 22+**. Use `@js-temporal/polyfill` only for older runtimes. In interviews: Temporal fixes midnight-UTC bugs and removes the need for `moment`/`dayjs` in new projects.
 
 **Example:**
 ```javascript
-import { Temporal } from '@js-temporal/polyfill';
-const shipDate = Temporal.PlainDate.from('2026-06-18');
+// Native in Node 22+ / modern browsers (Aug 2026)
+const shipDate = Temporal.PlainDate.from('2026-08-05');
 const deadline = shipDate.add({ days: 7 });
-console.log(deadline.toString()); // 2026-06-25
+const zoned = shipDate.toZonedDateTime('Asia/Kolkata');
+console.log(deadline.toString(), zoned.toString());
 ```
 
 ---
@@ -1375,6 +1406,8 @@ Boolean("");  // false
 ### 80. What is Node.js?
 
 **Answer:** Node.js is a JavaScript runtime built on Chrome's V8 engine with libuv for asynchronous, non-blocking I/O. It enables server-side APIs, CLIs, and tooling using the same language as the browser. Node excels at I/O-bound workloads like APIs and real-time apps.
+
+**As of Aug 2026:** **Node.js 24** is **Active LTS** (entered LTS October 2025, supported until April 2028). It ships **V8 13.6**, **npm 11**, **Undici 7**, global **URLPattern**, stable **`--permission`** model, and **`AsyncLocalStorage`** backed by **AsyncContextFrame**. Use **Node 24** for new production; **Node 22** remains Maintenance LTS; **Node 20** is end-of-life bound — upgrade if still on it.
 
 **Example:**
 ```javascript
@@ -4295,11 +4328,25 @@ const prompt = `Answer using ONLY this context:\n${context}\n\nQuestion: ${userQ
 
 **Answer:** **MongoDB Atlas Vector Search** (if already on Atlas), **Pinecone**, **Weaviate**, **pgvector** (Postgres extension), **Qdrant**. Choose based on existing stack, latency, and ops appetite.
 
+**Aug 2026 update (MongoDB 8.3 / Atlas, May 2026):** Atlas Vector Search adds **Automated Voyage AI Embeddings** (preview) — embeddings generated on write/update. **`$scoreFusion`** aggregation stage (GA) combines vector + full-text scores for hybrid RAG. **LangGraph.js Long-Term Memory Store** (GA) uses Atlas as persistent agent memory for Node/TS stacks.
+
 **Example:**
 ```javascript
+// Hybrid vector + text search with scoreFusion (MongoDB 8.3+ / Atlas)
 const results = await collection.aggregate([
-  { $vectorSearch: { index: 'embedding_index', path: 'embedding', queryVector: queryEmbedding, numCandidates: 100, limit: 5 } },
-  { $project: { title: 1, text: 1, score: { $meta: 'vectorSearchScore' } } },
+  {
+    $scoreFusion: {
+      input: {
+        pipelines: {
+          vector: [{ $vectorSearch: { index: 'embedding_index', path: 'embedding', queryVector: queryEmbedding, numCandidates: 100, limit: 20 } }],
+          text: [{ $search: { index: 'text_index', text: { query: userQuestion, path: 'body' } } }],
+        },
+      },
+      combination: { weights: { vector: 0.7, text: 0.3 } },
+    },
+  },
+  { $limit: 5 },
+  { $project: { title: 1, text: 1, score: { $meta: 'scoreFusionScore' } } },
 ]).toArray();
 ```
 
@@ -5112,7 +5159,7 @@ function coinChange(coins, amount) {
 
 # Part IV — Extended Topics — 2026 Complete
 
-## Modern JavaScript ES2023–2025 (326–334)
+## Modern JavaScript ES2023–2026 (326–334)
 
 > Latest language features commonly asked in 2026 interviews.
 
@@ -5239,9 +5286,9 @@ if (!g.fetch) g.fetch = require('node-fetch');
 
 ---
 
-### 334. Error.cause and AggregateError?
+### 334. Error.cause, AggregateError, and Error.isError?
 
-**Answer:** `Error` constructor accepts `{ cause }` to chain errors — preserves stack context in async pipelines. `AggregateError` wraps multiple errors (e.g., `Promise.any` rejection). Essential for production logging and debugging distributed flows.
+**Answer:** `Error` constructor accepts `{ cause }` to chain errors — preserves stack context in async pipelines. `AggregateError` wraps multiple errors (e.g., `Promise.any` rejection). **`Error.isError(value)`** (ES2026 / Node 24) reliably detects Error objects **across realms** — `instanceof Error` breaks in iframes, `vm` contexts, and workers; `Object.prototype.toString` can be spoofed via `Symbol.toStringTag`.
 
 **Example:**
 ```javascript
@@ -5250,11 +5297,13 @@ try {
 } catch (err) {
   throw new Error('Checkout failed', { cause: err });
 }
-// logger sees err.cause with original stack
+
+// ES2026 — safe cross-realm check
+if (Error.isError(err)) logger.error({ err, cause: err.cause });
 
 Promise.any([api1(), api2()]).catch((e) => {
   console.log(e instanceof AggregateError); // true
-  console.log(e.errors); // all rejection reasons
+  console.log(e.errors);
 });
 ```
 
@@ -5843,8 +5892,959 @@ jobs:
 
 ---
 
+# Part V — Missing Topics — Gap Fill
+
+> Topics commonly asked in interviews but previously only mentioned in passing. Pairs with WeakSet (Q42) and WeakMap usage in Q60.
+
 ---
 
+### 361. WeakMap vs Map (and vs WeakSet)?
+
+**Answer:** `Map` stores any key type with **strong** references — keys and values stay in memory until deleted. `WeakMap` accepts **objects only** (or registered symbols) as keys; keys are held **weakly** so they can be garbage-collected when nothing else references them. WeakMap has no `.size`, is not iterable, and only supports `.get`, `.set`, `.has`, `.delete`.
+
+Use **Map** for general caches and lookups. Use **WeakMap** to attach metadata to objects (DOM nodes, request contexts, class instances) without preventing GC. **WeakSet** (Q42) is the membership-only variant — no values, just `.has`/`.add`.
+
+| | Map | WeakMap | WeakSet |
+|--|-----|---------|---------|
+| Keys / values | Any key → any value | Object key → any value | Object values only |
+| Iterable / size | Yes | No | No |
+| GC | Strong | Weak keys | Weak values |
+| Typical use | Cache, counts | Private metadata on objects | “Already seen” tags |
+
+**Example:**
+```javascript
+const metadata = new WeakMap();
+
+class Order {
+  constructor(id) {
+    metadata.set(this, { createdAt: Date.now(), id });
+  }
+  getMeta() {
+    return metadata.get(this);
+  }
+}
+
+const order = new Order('ORD-1');
+console.log(order.getMeta()); // { createdAt: ..., id: 'ORD-1' }
+// When `order` is unreachable, WeakMap entry can be GC'd — unlike Map.set(order, ...)
+```
+
+---
+### 362. Prototype pollution — what is it and how do you prevent it?
+
+**Answer:** Prototype pollution is an attack (or accidental bug) that modifies `Object.prototype` (or other built-in prototypes) by merging untrusted keys like `__proto__`, `constructor.prototype`, or nested `prototype` paths. Polluted properties then appear on **every** plain object — enabling bypass of auth checks (`isAdmin`), RCE via polluted `exec` paths, or denial of service.
+
+Prevent by: never deep-merging user input into objects blindly; block dangerous keys; use `Object.create(null)` for lookup maps; use libraries with pollution guards (`lodash` 4.17.21+); validate with schema whitelist (Zod/Joi).
+
+**Example:**
+```javascript
+// Vulnerable deep merge (simplified)
+function merge(target, source) {
+  for (const key of Object.keys(source)) {
+    if (typeof source[key] === 'object' && source[key]) {
+      target[key] = merge(target[key] || {}, source[key]);
+    } else {
+      target[key] = source[key];
+    }
+  }
+  return target;
+}
+// Attacker body: { "__proto__": { "isAdmin": true } }
+// After merge, ({}).isAdmin === true — every object "inherits" isAdmin
+
+// Safer: schema validation — only allow known fields
+const UpdateSchema = z.object({ name: z.string(), qty: z.number().int().min(0) });
+const safe = UpdateSchema.parse(req.body);
+```
+
+---
+### 363. AsyncLocalStorage — request context in Node?
+
+**Answer:** `AsyncLocalStorage` (from `node:async_hooks`) stores data that follows async execution context across `await`, callbacks, and Promises within a request — without passing `req` through every function. Use for **correlation IDs**, user ID, tenant ID, and request-scoped loggers. Replaces deprecated `cls-hooked`.
+
+**Node.js 24 (2026):** `AsyncLocalStorage` defaults to **`AsyncContextFrame`** internally — faster and more reliable context propagation. No API change; upgrade to Node 24 for production performance gains.
+
+Initialize once per incoming HTTP request; read anywhere downstream in that async chain.
+
+**Example:**
+```javascript
+import { AsyncLocalStorage } from 'node:async_hooks';
+import pino from 'pino';
+
+const als = new AsyncLocalStorage();
+const baseLogger = pino();
+
+export function requestContextMiddleware(req, res, next) {
+  const store = {
+    requestId: req.headers['x-request-id'] || crypto.randomUUID(),
+    userId: req.user?.id,
+    logger: baseLogger.child({ requestId: req.headers['x-request-id'] }),
+  };
+  als.run(store, () => next());
+}
+
+export function getContext() {
+  return als.getStore();
+}
+
+// Deep in service layer — no req parameter needed:
+export async function createOrder(data) {
+  const ctx = getContext();
+  ctx?.logger.info({ userId: ctx.userId }, 'creating order');
+  return orderRepo.insert(data);
+}
+```
+
+---
+### 364. HTTP caching — ETag, Cache-Control, and 304?
+
+**Answer:** HTTP caching reduces bandwidth and latency. **`Cache-Control`** tells clients and CDNs how long to cache (`max-age`, `private`, `no-store`). **`ETag`** is a version fingerprint of a response body. On repeat requests, the client sends **`If-None-Match: "<etag>"`**; if unchanged, the server returns **`304 Not Modified`** with no body — client uses its cached copy.
+
+Use ETag for dynamic JSON that changes occasionally; use long `max-age` + fingerprinted filenames for static assets at CDN.
+
+**Example:**
+```javascript
+import crypto from 'node:crypto';
+import express from 'express';
+
+const app = express();
+
+app.get('/api/products/:id', async (req, res) => {
+  const product = await db.products.findById(req.params.id);
+  const body = JSON.stringify(product);
+  const etag = crypto.createHash('sha1').update(body).digest('hex');
+
+  res.set('Cache-Control', 'private, max-age=60');
+  res.set('ETag', `"${etag}"`);
+
+  if (req.headers['if-none-match'] === `"${etag}"`) {
+    return res.status(304).end(); // no body — saves bandwidth
+  }
+  res.type('json').send(body);
+});
+```
+
+---
+### 365. gRPC vs REST — when to use gRPC?
+
+**Answer:** **REST** uses HTTP/JSON — human-readable, browser-friendly, easy to debug with curl/Postman. **gRPC** uses HTTP/2 + **Protocol Buffers** — binary, strongly typed, supports **streaming** (client, server, bidirectional), and generates client/server stubs from `.proto` files.
+
+Choose gRPC for internal microservice-to-microservice calls needing low latency, type safety, and streaming. Choose REST (or GraphQL) for public APIs, mobile/web clients, and third-party integrations.
+
+**Example:**
+```protobuf
+// product.proto
+syntax = "proto3";
+package shop;
+
+service ProductService {
+  rpc GetProduct (GetProductRequest) returns (Product);
+  rpc ListProducts (ListRequest) returns (stream Product);
+}
+
+message GetProductRequest { string id = 1; }
+message Product { string id = 1; string name = 2; double price = 3; }
+```
+
+```javascript
+// Node server (@grpc/grpc-js)
+import grpc from '@grpc/grpc-js';
+import protoLoader from '@grpc/proto-loader';
+
+const packageDef = protoLoader.loadSync('product.proto');
+const shop = grpc.loadPackageDefinition(packageDef).shop;
+
+const server = new grpc.Server();
+server.addService(shop.ProductService.service, {
+  GetProduct: (call, callback) => {
+    callback(null, { id: call.request.id, name: 'USB-C Cable', price: 12.99 });
+  },
+});
+server.bindAsync('0.0.0.0:50051', grpc.ServerCredentials.createInsecure(), () => server.start());
+```
+
+---
+### 366. Array.some, .every, .findLast, .findLastIndex?
+
+**Answer:** These short-circuit array methods are common in interviews and production code:
+
+- **`some(fn)`** — returns `true` if **any** element matches (stops early).
+- **`every(fn)`** — returns `true` if **all** elements match (stops early).
+- **`findLast(fn)`** — returns the **last** matching element (ES2023).
+- **`findLastIndex(fn)`** — index of last match (ES2023).
+
+Unlike `filter`, they don't build a new array — better for existence checks and validation.
+
+**Example:**
+```javascript
+const orders = [
+  { id: 1, status: 'pending', total: 50 },
+  { id: 2, status: 'paid', total: 120 },
+  { id: 3, status: 'paid', total: 30 },
+];
+
+const hasPending = orders.some(o => o.status === 'pending');     // true
+const allPaid = orders.every(o => o.status === 'paid');          // false
+const lastPaid = orders.findLast(o => o.status === 'paid');      // { id: 3, ... }
+const lastPaidIdx = orders.findLastIndex(o => o.status === 'paid'); // 2
+
+// Validation in API handler:
+if (!items.every(i => i.qty > 0)) {
+  throw new ValidationError('Quantity must be positive');
+}
+```
+
+---
+### 367. MongoDB $facet — parallel sub-pipelines?
+
+**Answer:** `$facet` runs **multiple aggregation sub-pipelines on the same input documents** in one round-trip — ideal for dashboards that need counts, top-N lists, and breakdowns simultaneously. Avoids multiple separate queries and race conditions on live data.
+
+Each facet key names an output array field.
+
+**Example:**
+```javascript
+const dashboard = await db.orders.aggregate([
+  { $match: { createdAt: { $gte: startOfMonth } } },
+  {
+    $facet: {
+      byStatus: [
+        { $group: { _id: '$status', count: { $sum: 1 }, revenue: { $sum: '$total' } } },
+      ],
+      topProducts: [
+        { $unwind: '$items' },
+        { $group: { _id: '$items.sku', qty: { $sum: '$items.qty' } } },
+        { $sort: { qty: -1 } },
+        { $limit: 5 },
+      ],
+      totalOrders: [{ $count: 'count' }],
+    },
+  },
+]).toArray();
+// One result: { byStatus: [...], topProducts: [...], totalOrders: [{ count: 842 }] }
+```
+
+---
+### 368. OpenID Connect (OIDC) vs OAuth 2.0?
+
+**Answer:** **OAuth 2.0** is an **authorization** framework — “this app can access my Google calendar.” It issues **access tokens** for API scopes. **OpenID Connect (OIDC)** is an **identity layer on top of OAuth 2.0** — “this user is pradeep@example.com.” It adds an **ID token** (JWT) with claims (`sub`, `email`, `name`) and a `/userinfo` endpoint.
+
+In interviews: OAuth = permission; OIDC = authentication + profile. “Login with Google” uses **authorization code + PKCE** flow and returns both access token (API) and ID token (identity).
+
+**Example:**
+```javascript
+// After OIDC callback (simplified — use openid-client or passport-openidconnect in production)
+const tokens = await exchangeCodeForTokens(code, { code_verifier: pkceVerifier });
+const idTokenPayload = decodeJwt(tokens.id_token); // { sub, email, iss, aud, exp }
+const userinfo = await fetch(issuer + '/userinfo', {
+  headers: { Authorization: `Bearer ${tokens.access_token}` },
+}).then(r => r.json());
+
+// Store session: idTokenPayload.sub as stable user ID
+req.session.userId = idTokenPayload.sub;
+```
+
+---
+### 369. Reflect API — what and why with Proxy?
+
+**Answer:** `Reflect` provides methods that mirror internal object operations (`get`, `set`, `has`, `deleteProperty`, `apply`, `construct`). In **Proxy traps**, call the corresponding `Reflect` method to apply default behavior, then add validation or logging. Keeps traps correct and forward-compatible.
+
+**Example:**
+```javascript
+const cart = new Proxy({ items: [] }, {
+  set(target, prop, value, receiver) {
+    if (prop === 'items' && !Array.isArray(value)) {
+      throw new TypeError('items must be an array');
+    }
+    return Reflect.set(target, prop, value, receiver); // default [[Set]] behavior
+  },
+  get(target, prop, receiver) {
+    if (prop === 'itemCount') return target.items.length;
+    return Reflect.get(target, prop, receiver);
+  },
+});
+
+cart.items = [{ sku: 'A1', qty: 2 }];
+console.log(cart.itemCount); // 2
+```
+
+---
+### 370. Stream backpressure and highWaterMark?
+
+**Answer:** **Backpressure** occurs when a data producer (Readable) is faster than the consumer (Writable). Node pauses the readable stream until the writable drains — preventing memory blow-up on large files or slow clients. **`highWaterMark`** (default 16KB in binary mode, 16 objects in object mode) controls internal buffer size before `write()` returns `false` and `'drain'` is needed.
+
+Always pipe with **`pipeline()`** (Q112) — it handles errors and backpressure. Manual writes must listen for `'drain'`.
+
+**Example:**
+```javascript
+import { Readable, Writable } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
+
+const slowWriter = new Writable({
+  highWaterMark: 2, // small buffer — backpressure kicks in sooner
+  write(chunk, enc, cb) {
+    setTimeout(() => { console.log('wrote', chunk.toString()); cb(); }, 100);
+  },
+});
+
+const fastReader = Readable.from(['a', 'b', 'c', 'd', 'e']);
+
+// pipeline handles pause/resume automatically
+await pipeline(fastReader, slowWriter);
+```
+
+---
+### 371. SSE vs WebSocket vs long polling?
+
+**Answer:**
+
+| | SSE | WebSocket | Long polling |
+|--|-----|-----------|--------------|
+| Direction | Server → client only | Bidirectional | Client polls; server holds until data |
+| Protocol | HTTP | WS upgrade | Repeated HTTP |
+| Reconnect | Built-in (`EventSource`) | Manual | Automatic (new request) |
+| Use case | Live feeds, LLM tokens, notifications | Chat, games, collaborative edit | Legacy real-time fallback |
+
+Node APIs often use **SSE** for one-way streams (cheaper, works through HTTP/2 proxies) and **WebSocket** when the client must send frequent messages (chat). **Long polling** is a fallback when SSE/WS are blocked.
+
+**Example:**
+```javascript
+// SSE — Express
+app.get('/api/events', (req, res) => {
+  res.setHeader('Content-Type', 'text/event-stream');
+  res.setHeader('Cache-Control', 'no-cache');
+  res.flushHeaders();
+  const interval = setInterval(() => {
+    res.write(`data: ${JSON.stringify({ ts: Date.now() })}\n\n`);
+  }, 2000);
+  req.on('close', () => clearInterval(interval));
+});
+```
+
+---
+### 372. argon2 vs bcrypt for password hashing?
+
+**Answer:** Both are slow password hashes resistant to brute force. **bcrypt** (1999) is widely supported, simple (`bcrypt.hash` / `compare`), and fine for most apps — tune **cost factor** (rounds). **Argon2** (2015, Password Hashing Competition winner) adds **memory hardness** — harder to crack with GPUs/ASICs; preferred for high-security or compliance-heavy systems.
+
+Use bcrypt by default in Node (mature ecosystem); choose argon2 when security requirements explicitly demand memory-hard hashing or you are greenfield with `argon2` npm package.
+
+**Example:**
+```javascript
+import argon2 from 'argon2';
+import bcrypt from 'bcrypt';
+
+// bcrypt — Q104 pattern
+const bcryptHash = await bcrypt.hash(password, 12);
+
+// argon2 — memory + time cost
+const argon2Hash = await argon2.hash(password, {
+  type: argon2.argon2id,
+  memoryCost: 65536, // 64 MB
+  timeCost: 3,
+  parallelism: 4,
+});
+const ok = await argon2.verify(argon2Hash, password);
+```
+
+---
+### 373. RBAC — role-based access control in Node APIs?
+
+**Answer:** **RBAC** assigns permissions to **roles** (`admin`, `editor`, `viewer`), and users get one or more roles. Middleware checks role or permission before route handlers run. Simpler than per-user ACLs for most B2B SaaS.
+
+Store roles in JWT claims (short lists only), session, or DB; enforce on every protected route — never trust client-only UI hiding.
+
+**Example:**
+```javascript
+function requireRole(...allowedRoles) {
+  return (req, res, next) => {
+    const roles = req.user?.roles ?? [];
+    if (!allowedRoles.some(r => roles.includes(r))) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+    next();
+  };
+}
+
+app.delete('/api/products/:id', requireRole('admin'), deleteProduct);
+app.patch('/api/products/:id', requireRole('admin', 'editor'), updateProduct);
+app.get('/api/orders', requireRole('admin', 'editor', 'viewer'), listOrders);
+```
+
+---
+### 374. ReDoS — regex denial of service?
+
+**Answer:** **Regular Expression Denial of Service** happens when a regex with catastrophic backtracking takes exponential time on crafted input (e.g. `(a+)+$` against `aaaaaaaaaaaaaaaaaaaa!`). A single `RegExp.test()` in a request handler can block the Node event loop.
+
+Mitigate: prefer simple regex; use **`re2`** or **`safe-regex`** linting; set timeouts on user-input validation; use string methods or parsers instead of complex regex for email/URL; never pass unbounded user input to nested quantifier patterns.
+
+**Example:**
+```javascript
+// Dangerous — nested quantifiers
+const evil = /^(a+)+$/;
+// evil.test('aaaaaaaaaaaaaaaaaaaaaaaaaaaa!'); // hangs for seconds
+
+// Safer — linear pattern or library
+import RE2 from 're2';
+const safe = new RE2('^[a-z]+$');
+safe.test(userInput); // linear time guarantee
+
+// Or: length limit + schema validation first
+if (input.length > 100) return res.status(400).json({ error: 'Too long' });
+```
+
+---
+### 375. try/catch/finally — behavior and pitfalls?
+
+**Answer:** `try` runs code that may throw; `catch` handles errors; `finally` **always** runs (cleanup). If `finally` returns a value or throws, it **overrides** a `try`/`catch` return or rethrow (tricky interview trap — see tricky Q35).
+
+Use `try/catch` around `await` in async functions; use `finally` for releasing locks, closing DB sessions, and `session.endSession()` in MongoDB transactions.
+
+**Example:**
+```javascript
+async function chargeWithCleanup(orderId) {
+  let lock;
+  try {
+    lock = await acquireLock(`order:${orderId}`);
+    const order = await db.orders.findById(orderId);
+    if (!order) throw new NotFoundError('Order');
+    return await paymentClient.charge(order);
+  } catch (err) {
+    logger.error({ orderId, err }, 'charge failed');
+    throw err; // rethrow unless converting to HTTP response
+  } finally {
+    if (lock) await lock.release(); // always runs
+  }
+}
+
+// Trap: finally return wins
+function trap() {
+  try { return 1; }
+  finally { return 2; } // returns 2, not 1
+}
+```
+
+---
+### 376. Private class fields (#) in JavaScript?
+
+**Answer:** ES2022 **private fields** use `#name` syntax — only accessible inside the class body, not from subclasses or instances externally. True encapsulation without WeakMap hacks. Also: **private methods** (`#helper()`), **static private** (`static #count`).
+
+**Example:**
+```javascript
+class Cart {
+  #items = [];
+  #discount = 0;
+
+  add(product, qty) {
+    this.#items.push({ product, qty });
+  }
+
+  #subtotal() {
+    return this.#items.reduce((s, i) => s + i.product.price * i.qty, 0);
+  }
+
+  total() {
+    return this.#subtotal() * (1 - this.#discount);
+  }
+
+  applyCoupon(pct) {
+    if (pct < 0 || pct > 1) throw new RangeError('Invalid discount');
+    this.#discount = pct;
+  }
+}
+
+const cart = new Cart();
+cart.add({ price: 10 }, 2);
+// cart.#items — SyntaxError: private field
+console.log(cart.total()); // 20
+```
+
+---
+### 377. express-mongo-sanitize and NoSQL injection defense?
+
+**Answer:** NoSQL injection (Q218) happens when attackers send objects like `{ "$gt": "" }` instead of strings in query/body — operators bypass filters. **`express-mongo-sanitize`** strips keys starting with `$` or containing `.` from `req.body`, `req.query`, and `req.params`.
+
+Defense in depth: sanitize middleware + **schema validation** (Zod whitelist) + never pass raw `req.body` to Mongoose/`find()`.
+
+**Example:**
+```javascript
+import mongoSanitize from 'express-mongo-sanitize';
+import { z } from 'zod';
+
+app.use(express.json());
+app.use(mongoSanitize()); // removes { "$gt": "" } keys
+
+const LoginSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+});
+
+app.post('/api/login', (req, res) => {
+  const { email, password } = LoginSchema.parse(req.body);
+  // Safe — email is guaranteed string, not { $gt: '' }
+  return User.findOne({ email, passwordHash: hash(password) });
+});
+```
+
+---
+### 378. MongoDB arrayFilters and positional updates ($[], $)?
+
+**Answer:** Updating **specific array elements** without replacing the whole array:
+
+- **`$`** — first matching element (positional operator) after query matches array item.
+- **`$[]`** — all elements matching the query filter on the array field.
+- **`arrayFilters`** — update specific elements by condition (e.g. only line items with `sku: 'A1'`).
+
+**Example:**
+```javascript
+// Mark first matching item as shipped
+await Order.updateOne(
+  { _id: orderId, 'items.sku': 'SKU-99' },
+  { $set: { 'items.$.status': 'shipped' } }
+);
+
+// Update ALL items to processed
+await Order.updateOne(
+  { _id: orderId },
+  { $set: { 'items.$[].status': 'processed' } }
+);
+
+// Update only items where qty > 5 (arrayFilters)
+await Order.updateOne(
+  { _id: orderId },
+  { $set: { 'items.$[elem].bulkDiscount': true } },
+  { arrayFilters: [{ 'elem.qty': { $gt: 5 } }] }
+);
+```
+
+---
+### 379. Object.hasOwn vs `in` vs hasOwnProperty?
+
+**Answer:**
+
+- **`Object.hasOwn(obj, key)`** — `true` if **own** property (ES2022; prefer over `hasOwnProperty`).
+- **`key in obj`** — `true` if own **or inherited** (prototype chain).
+- **`obj.hasOwnProperty(key)`** — own only, but can be shadowed if obj has no prototype or custom `hasOwnProperty`.
+
+Use `hasOwn` for safe iteration; use `in` when prototype methods matter (e.g. `'toString' in obj`).
+
+**Example:**
+```javascript
+const child = Object.create({ inherited: 1 });
+child.own = 2;
+
+Object.hasOwn(child, 'own');        // true
+Object.hasOwn(child, 'inherited');  // false
+'inherited' in child;               // true — walks prototype
+child.hasOwnProperty('own');        // true (avoid if obj may lack prototype)
+
+for (const key of Object.keys(child)) {
+  // only 'own' — use Object.keys + hasOwn for own enumerable props
+}
+```
+
+---
+### 380. MongoDB $merge, $out, and collation?
+
+**Answer:**
+
+- **`$out`** — writes aggregation results to a **collection** (replace or create). Snapshot for reports; use carefully in production (permissions, disk).
+- **`$merge`** — upsert aggregation output into a target collection (merge, replace, fail on duplicate) — ETL and materialized view patterns.
+- **Collation** — locale-aware string comparison (sort, `$match` on strings). Set on collection, index, or per-operation `{ locale: 'en', strength: 2 }`.
+
+**Example:**
+```javascript
+// Nightly sales summary → summary collection
+await db.orders.aggregate([
+  { $match: { status: 'paid', createdAt: { $gte: yesterday } } },
+  { $group: { _id: '$userId', total: { $sum: '$amount' }, count: { $sum: 1 } } },
+  { $merge: { into: 'daily_user_totals', on: '_id', whenMatched: 'replace', whenNotMatched: 'insert' } },
+]).toArray();
+
+// Case-insensitive sort
+await db.products.find().sort({ name: 1 }).collation({ locale: 'en', strength: 2 }).toArray();
+```
+
+---
+
+# Part VI — Mid-2026 Release Updates (Aug 2026)
+
+> Verified against releases through **August 5, 2026**: ECMAScript 2026 (ratified June 30, 2026), Node.js 24 LTS, MongoDB 8.0 GA + 8.3 GA (May 7, 2026).
+
+---
+
+## ECMAScript 2026 (381–389, 399)
+
+### 381. What shipped in ECMAScript 2026?
+
+**Answer:** **ECMAScript 2026** (17th edition) was ratified by Ecma International on **June 30, 2026**. It is an incremental release focused on utility APIs and long-standing pain points — not syntax-heavy like ES2015. Highlights:
+
+- `Array.fromAsync`, `Math.sumPrecise`, `Error.isError`
+- `Map` / `WeakMap` **`getOrInsert`** / **`getOrInsertComputed`**
+- `Iterator.concat`, `Uint8Array` Base64/Hex helpers
+- `JSON.rawJSON` / `JSON.isRawJSON` + reviver **source text access**
+- **Temporal API** in the language spec (see Q70)
+- **`using` / `await using`** (Explicit Resource Management) widely available in Node 24+
+
+Most features land in V8/Node 24 during 2026; check [caniuse.com](https://caniuse.com) or `node --version` before dropping polyfills.
+
+---
+### 382. Array.fromAsync?
+
+**Answer:** Creates an array from an **async iterable** or from a sync iterable that yields Promises — the async counterpart to `Array.from`. Essential for consuming async generators, streaming paginated APIs, and `for await` pipelines without manual loops.
+
+**Example:**
+```javascript
+async function* fetchOrderPages() {
+  for (let page = 1; page <= 3; page++) {
+    yield fetch(`/api/orders?page=${page}`).then(r => r.json());
+  }
+}
+
+const allOrders = await Array.fromAsync(fetchOrderPages(), page => page.items);
+// flat list of items from all pages
+```
+
+---
+### 383. Math.sumPrecise?
+
+**Answer:** Sums numbers in a **numerically stable** way (Neumaier/compensated summation) — avoids floating-point drift that bites financial and analytics code. Prefer over naive `reduce((a,b) => a+b)` for money, metrics, and billing totals.
+
+**Example:**
+```javascript
+const lineItems = [0.1, 0.2, 0.3, 0.4, 0.5];
+Math.sumPrecise(lineItems);           // 1.5 — stable
+lineItems.reduce((a, b) => a + b, 0); // may drift: 1.4999999999999998
+
+// Works on iterables
+Math.sumPrecise(cart.items.map(i => i.price * i.qty));
+```
+
+---
+### 384. Map.getOrInsert and getOrInsertComputed?
+
+**Answer:** ES2026 **upsert** helpers on `Map` and `WeakMap`:
+
+- **`getOrInsert(key, value)`** — returns existing value or inserts `value` if missing.
+- **`getOrInsertComputed(key, callback)`** — returns existing value or computes, inserts, and returns.
+
+Replaces the common `if (!map.has(k)) map.set(k, factory())` boilerplate. **`WeakMap`** gets the same methods — useful for per-object lazy caches without strong key retention beyond the object itself.
+
+**Note:** `getOrInsert(key, value)` still **evaluates `value` before the call** (normal JS argument rules). Use **`getOrInsertComputed`** when creation is expensive.
+
+**Example:**
+```javascript
+const cache = new Map();
+
+function getConfig(tenantId) {
+  return cache.getOrInsertComputed(tenantId, () => loadConfigFromDb(tenantId));
+}
+
+// WeakMap — metadata on request object, GC-friendly
+const meta = new WeakMap();
+function getRequestMeta(req) {
+  return meta.getOrInsertComputed(req, () => ({ start: Date.now(), id: crypto.randomUUID() }));
+}
+```
+
+---
+### 385. Iterator.concat?
+
+**Answer:** ES2026 adds **`Iterator.concat(...sources)`** — lazily sequences multiple iterables/iterators into one iterator without building intermediate arrays. Complements ES2024 iterator helpers (Q330). Use for paginated streams, chained log sources, and multi-file line readers.
+
+**Example:**
+```javascript
+const pages = [
+  ['order:1', 'order:2'],
+  ['order:3'],
+];
+const allLines = Iterator.concat(...pages.map(p => p[Symbol.iterator]()))
+  .filter(line => line.startsWith('order:'))
+  .toArray();
+// ['order:1', 'order:2', 'order:3']
+```
+
+---
+### 386. JSON.rawJSON and JSON.parse source text access?
+
+**Answer:** Large integers and precise decimals are **lossy** in JavaScript `Number`. ES2026 extends JSON handling:
+
+- **`JSON.rawJSON(text)`** — mark raw JSON fragments for `JSON.stringify` (no re-serialization through Number).
+- **`JSON.isRawJSON(value)`** — check raw JSON wrapper.
+- **`JSON.parse` reviver** — third argument **`context.source`** gives original source text for unmodified primitives — parse big IDs as strings safely.
+
+**Example:**
+```javascript
+const payload = '{"orderId":9007199254740993,"total":99.99}';
+
+JSON.parse(payload, (key, value, context) => {
+  if (key === 'orderId' && context?.source) return context.source; // keep as string
+  return value;
+});
+// orderId stays "9007199254740993" — no precision loss
+
+const doc = { meta: JSON.rawJSON('{"version":1}') };
+JSON.stringify(doc); // embeds raw JSON without parsing
+```
+
+---
+### 387. Uint8Array Base64 and Hex helpers?
+
+**Answer:** ES2026 adds native binary encoding on **`Uint8Array`** — no more `Buffer.from(x, 'base64')` only in Node. Methods: **`toBase64()`**, **`fromBase64()`**, **`setFromBase64()`**, **`toHex()`**, **`fromHex()`**, **`setFromHex()`**. Works in modern browsers and Node 24+ for JWT segments, file hashes, and crypto payloads.
+
+**Example:**
+```javascript
+const bytes = Uint8Array.from([72, 101, 108, 108, 111]);
+bytes.toBase64(); // 'SGVsbG8='
+
+const decoded = Uint8Array.fromBase64('SGVsbG8=');
+new TextDecoder().decode(decoded); // 'Hello'
+
+const hash = Uint8Array.fromHex('48656c6c6f');
+```
+
+---
+### 388. Error.isError vs instanceof Error?
+
+**Answer:** **`Error.isError(value)`** (ES2026) returns `true` for genuine Error objects across **realms** (workers, vm, iframes). **`instanceof Error`** fails when the object comes from a different global. **`Symbol.toStringTag`** can be spoofed. Use `Error.isError` in logging middleware, error boundaries, and micro-frontend error aggregation.
+
+**Example:**
+```javascript
+import vm from 'node:vm';
+
+const context = vm.createContext({});
+const foreignErr = vm.runInContext('new Error("db down")', context);
+
+foreignErr instanceof Error; // false — different realm
+Error.isError(foreignErr);   // true
+
+app.use((err, req, res, next) => {
+  if (!Error.isError(err)) err = new Error(String(err));
+  logger.error(err);
+  next(err);
+});
+```
+
+---
+### 389. using and await using — Explicit Resource Management?
+
+**Answer:** **`using`** and **`await using`** (ES2024+, stable in **Node 24** / TypeScript 5.2+) declare resources that auto-dispose at block exit — like `try/finally` but syntactic. Objects need **`Symbol.dispose`** or **`Symbol.asyncDispose`**. Ideal for DB connections, file handles, locks, and temp directories.
+
+**Example:**
+```javascript
+import { open } from 'node:fs/promises';
+
+async function exportOrders() {
+  await using file = await open('orders.csv', 'w'); // auto-closes at end of block
+  await file.write('id,total\n');
+  for await (const order of orderStream()) {
+    await file.write(`${order.id},${order.total}\n`);
+  }
+} // file closed here — even on throw
+```
+
+---
+
+## Node.js 24 LTS (390–393, 400)
+
+### 390. Node.js 24 — key changes for backend developers?
+
+**Answer:** **Node.js 24.0.0** released **May 6, 2025**; became **Active LTS October 2025** (supported until ~April 2028). Major backend-relevant changes:
+
+| Area | Change |
+|------|--------|
+| V8 | **13.6** — ES2026 features, `Error.isError`, `RegExp.escape`, Float16Array |
+| HTTP | **Undici 7** — faster `fetch`, modern HTTP features |
+| Context | **AsyncLocalStorage** → AsyncContextFrame by default |
+| Security | **`--permission`** stable (was `--experimental-permission`) |
+| DX | Global **URLPattern**, **npm 11**, JSON module **import attributes** |
+| Test | Built-in test runner auto-awaits subtests |
+| Crypto | OpenSSL 3.5, post-quantum algorithms in `node:crypto` |
+
+**Recommendation (Aug 2026):** Node **24 LTS** for new production; Node **22** acceptable; migrate off **20** before EOL.
+
+**Example:**
+```bash
+node --version    # v24.x.x
+node --permission --allow-fs-read=./data --allow-fs-write=./logs app.js
+```
+
+---
+### 391. URLPattern in Node.js 24?
+
+**Answer:** **`URLPattern`** is a declarative URL/router matcher (like RegExp for URLs) — **global in Node 24** (no import). Match pathname, hostname, search params; extract groups. Useful for lightweight routing, CDN rules, service workers, and BFF path classification without Express.
+
+**Example:**
+```javascript
+const pattern = new URLPattern({ pathname: '/api/orders/:id' });
+const match = pattern.exec('https://shop.com/api/orders/42');
+
+if (match) {
+  console.log(match.pathname.groups.id); // '42'
+}
+
+// Express-style guard
+app.use((req, res, next) => {
+  const m = pattern.exec(req.url);
+  if (m) req.orderId = m.pathname.groups.id;
+  next();
+});
+```
+
+---
+### 392. Node.js permission model (--permission)?
+
+**Answer:** Node **24** promotes the **Permission Model** from experimental to stable. Run with **`node --permission`** and explicitly allow sensitive capabilities:
+
+- `--allow-fs-read`, `--allow-fs-write` — file paths
+- `--allow-net` — host:port
+- `--allow-env` — environment variables
+- `--allow-child-process`, `--allow-worker`
+
+Violations throw **`ERR_ACCESS_DENIED`**. Defense-in-depth for running untrusted scripts, CI sandboxes, and supply-chain attack containment.
+
+**Example:**
+```bash
+# API that only reads ./config and connects to MongoDB host
+node --permission \
+  --allow-fs-read=./config \
+  --allow-net=mongodb.net:27017 \
+  --allow-env=MONGODB_URI,PORT \
+  server.js
+```
+
+---
+### 393. Import JSON modules with import attributes?
+
+**Answer:** Node **24** has full support for **`import config from './config.json' with { type: 'json' }`** (import attributes syntax). Typed, static, tree-shakeable JSON imports in ESM — replaces `readFileSync` + `JSON.parse` for config files. Also aligns with browser ESM JSON modules.
+
+**Example:**
+```javascript
+import packageMeta from './package.json' with { type: 'json' };
+import localConfig from './config/development.json' with { type: 'json' };
+
+console.log(packageMeta.version, localConfig.port);
+```
+
+---
+
+## MongoDB 8.0 / 8.3 (394–398)
+
+### 394. MongoDB 8.0 — what changed?
+
+**Answer:** **MongoDB 8.0** (GA 2024, patches through **8.0.28 July 2026**) is a major release with broad performance and ops improvements:
+
+- **~25%+ throughput/latency** gains; **54% faster bulk inserts**, **60% faster time-series aggregations**
+- **Queryable Encryption** — **range queries** on encrypted fields (new use cases for PII)
+- **Ingress queue** — admission control for traffic spikes
+- **Multi-collection `bulkWrite` command** — many ops across collections in one request
+- **`$lookup` inside transactions** on sharded collections
+- **Resharding / unshard** improvements; config shards
+- **`workingMillis`** in profiler/advisor (Mongo processing time vs total latency)
+- **`$toUUID`** helper expression
+
+Upgrade via MongoDB Upgrade Guide; check compatibility and deprecated features before production cutover.
+
+**Example:**
+```javascript
+// Multi-collection bulkWrite (8.0+)
+await db.adminCommand({
+  bulkWrite: 1,
+  ops: [
+    { insert: 0, document: { _id: 1, sku: 'A' } },
+    { update: 1, filter: { _id: 2 }, updateMods: { $set: { qty: 5 } } },
+  ],
+  nsInfo: [{ ns: 'shop.products' }, { ns: 'shop.inventory' }],
+});
+```
+
+---
+### 395. MongoDB 8.3 — performance and AI platform (May 2026)?
+
+**Answer:** **MongoDB 8.3** GA **May 7, 2026** (.local London). Compounds 8.0 gains with compiler optimizations (PGO/LTO):
+
+- **+45% reads**, **+35% writes**, **+15% ACID transactions**, **+30% complex ops** vs 8.0 (same app code)
+- **Automated Voyage AI Embeddings** in Atlas Vector Search (preview) — embed on write/update
+- **`$scoreFusion`** — hybrid vector + full-text ranking (GA)
+- **LangGraph.js Long-Term Memory Store** on Atlas (GA) — agent memory for Node/TS
+- **Cross-region AWS PrivateLink** (GA) — private backbone between Atlas regions
+- New **data transformation query expressions**
+
+Interview angle: MongoDB positions as **unified AI data platform** — OLTP + search + vector + agent memory in one stack.
+
+---
+### 396. MongoDB $scoreFusion — hybrid search?
+
+**Answer:** **`$scoreFusion`** (8.3 / Atlas GA May 2026) combines scores from multiple search pipelines — typically **vector search** + **Atlas Search full-text** — with configurable weights. Better RAG retrieval than vector-only when queries mix semantic and keyword signals ("MongoDB 8.3 release notes" vs embedding similarity alone).
+
+**Example:** See updated Q282 — weights `{ vector: 0.7, text: 0.3 }` is a common starting point; tune with offline eval on your corpus.
+
+---
+### 397. MongoDB Queryable Encryption — range queries?
+
+**Answer:** **Queryable Encryption** lets apps query encrypted fields without decrypting on the server. **MongoDB 8.0** adds **range query** support on encrypted data — e.g. `age > 18`, salary bands, date ranges — expanding beyond equality queries. Critical for HIPAA/PCI-style compliance while keeping queryability.
+
+Tradeoffs: schema planning, key management (KMS), and performance vs unencrypted indexes. Mention in security-focused senior interviews alongside field-level encryption and CSFLE.
+
+**Example:**
+```javascript
+// Conceptual — encrypted field with range predicate (8.0+)
+await db.patients.find({
+  age: { $gt: 18, $lt: 65 }, // supported on Queryable Encryption range fields
+});
+```
+
+---
+### 398. MongoDB ingress queue and workingMillis?
+
+**Answer:** **Ingress queue (8.0):** Operations wait in a queue before entering the server under load — **admission control** against traffic spikes that would OOM or thrash WiredTiger. Tune for resilience during flash sales or DDoS-like patterns.
+
+**workingMillis (8.0):** Profiler, Performance Advisor, and Atlas telemetry report **`workingMillis`** (time MongoDB spent processing) vs **`durationMillis`** (total round-trip including network/queue). Use **`workingMillis`** to find truly slow queries vs network latency.
+
+**Example:**
+```javascript
+const plan = db.orders.find({ status: 'pending' }).explain('executionStats');
+plan.executionStats.executionTimeMillis; // total
+// 8.0+ explain also exposes queryPlanner.optimizationTimeMillis
+```
+
+---
+
+### 399. RegExp.escape?
+
+**Answer:** **`RegExp.escape(string)`** (ES2026 / V8 in Node 24) returns a string safe to embed in a RegExp — escapes `. * + ? ^ $ { } ( ) | [ ] \` etc. Prevents **ReDoS** and accidental pattern bugs when building regex from user search input. Prefer over manual replace chains.
+
+**Example:**
+```javascript
+function searchProducts(userQuery) {
+  const safe = RegExp.escape(userQuery.trim());
+  return db.products.find({ name: { $regex: safe, $options: 'i' } });
+}
+// User input "C++ (sale)" won't break regex syntax
+```
+
+---
+### 400. Which Node.js version to use in August 2026?
+
+**Answer:**
+
+| Version | Status (Aug 2026) | Use for |
+|---------|-------------------|---------|
+| **Node 24.x** | **Active LTS** | **New production** — default choice |
+| **Node 22.x** | Maintenance LTS | Existing apps; plan upgrade to 24 |
+| **Node 20.x** | End-of-life approaching | **Migrate urgently** |
+| **Node 23.x** | EOL (short Current release) | Do not use in production |
+
+Check [nodejs.org/en/about/releases](https://nodejs.org/en/about/releases) for exact dates. Pin version in `.nvmrc`, Docker `FROM node:24-bookworm-slim`, and CI matrix. Pair with **MongoDB 8.0+** (prefer **8.3** on Atlas for AI/hybrid search).
+
+**Example:**
+```dockerfile
+FROM node:24-bookworm-slim
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --omit=dev
+COPY . .
+USER node
+CMD ["node", "server.js"]
+```
 
 ---
 
@@ -5857,7 +6857,7 @@ jobs:
 | Fresher | Q 1–30, 80–99, 158–177 — JS basics, Express routing, MongoDB CRUD, event loop & falsy traps; **Flatten Deep Dive** after Q29 |
 | 2–4 years | Q 30–79, 100–130, 178–200 — async patterns, auth, aggregation, NoSQL injection, soft delete |
 | 5–6 years (Senior) | Q 60–79, 110–157, 190–225, **226–279, 294–300** — system design, Docker, sharding, architecture, behavioral |
-| 6+ years (Senior + AI era) | All Senior rows + **241–250**, **251–257**, **258–263**, **264–271**, **280–293**, **301–305**, **321–325**, **326–360** (ES2024+, queues, ORMs, K8s, AWS) |
+| 6+ years (Senior + AI era) | All Senior rows + **241–250**, **251–257**, **258–263**, **264–271**, **280–293**, **301–305**, **321–325**, **326–400** (ES2024–2026, queues, ORMs, K8s, AWS, gap-fill, Aug 2026 releases) |
 | Full-stack Node + React JD | Add **316–320** + one Next.js page calling your API |
 | GraphQL API role | **306–310** + DataLoader exercise |
 | AI-focused Node role | **280–293** deep dive + build one RAG side project |
@@ -5865,6 +6865,8 @@ jobs:
 | ORM-heavy SQL role | **341–348** + Prisma or Sequelize exercise |
 | K8s / platform JD | **349–354** + deploy API to minikube |
 | AWS / DevOps JD | **355–360** + GitHub Actions pipeline |
+| Gap-fill / security / gRPC JD | **361–380** (WeakMap, prototype pollution, AsyncLocalStorage, HTTP cache, gRPC, RBAC, Mongo $facet) |
+| Aug 2026 release awareness | **381–400** (ES2026, Node 24 LTS, MongoDB 8.3, $scoreFusion) |
 
 ### Recommended 4-week plan (6 years, Node + AI market)
 
@@ -5875,7 +6877,7 @@ jobs:
 | 3 | Q 280–293 + build mini RAG API (Mongo Atlas or pgvector) | AI integration portfolio piece |
 | 4 | Q 294–300 (STAR stories out loud) + Q321–325 (2 LC/day) | Behavioral + coding round |
 
-### Recommended 12-week plan (complete coverage — all 360 Q)
+### Recommended 12-week plan (complete coverage — all 400 Q)
 
 | Week | Topics (Q) | Deliverable |
 |------|------------|-------------|
@@ -5888,7 +6890,7 @@ jobs:
 | 9 | 280–293, 335–340 | RAG project + queue spike |
 | 10 | 306–315, 341–348 | GraphQL/Redis + ORM exercise |
 | 11 | 349–360, 316–320 | K8s/AWS + optional React |
-| 12 | 321–325, 294–300 | LC patterns + mock interviews |
+| 12 | 321–325, 294–300, **361–400** | LC patterns + mocks + gap-fill + Aug 2026 updates |
 
 ### Recommended 10-week plan (core + senior)
 
@@ -5902,7 +6904,7 @@ jobs:
 | 7 | 306–310, 311–315 | GraphQL or Redis spike (pick JD) |
 | 8 | 316–320 | Next.js page → your API |
 | 9 | 321–325 | 30+ LC mediums checked off |
-| 10 | 294–300, 326–360 (skim Part IV) | Full mock interview × 2 |
+| 10 | 294–300, 326–400 (skim Part IV–VI) | Full mock interview × 2 |
 
 ---
 
@@ -5919,7 +6921,7 @@ jobs:
 | **3** | TS, testing, GraphQL, Redis | Q 241–257, 258–263, 306–315 | TS API + CI tests + optional GraphQL |
 | **4** | AI portfolio | Q 280–293 | **RAG project** on GitHub |
 | **5** | LeetCode + React | Q 321–325, 316–320 | 48+ LC mediums + optional Next.js |
-| **6** | Behavioral + mocks + apply | Q 294–300, 326–360 (Part IV extended skim), review weak Q | 8 STAR stories + applications |
+| **6** | Behavioral + mocks + apply | Q 294–300, 326–400 (Part IV–VI skim), review weak Q | 8 STAR stories + applications |
 
 ---
 
@@ -6203,7 +7205,7 @@ Prepare **8 STAR stories** (2 min spoken each):
 | Skill | Target by end |
 |-------|----------------|
 | JS / Node / Mongo | Explain any Q 1–225 confidently |
-| Extended (Part IV) | Skim Q 326–360; hands-on 2+ topics (queue, ORM, K8s, or AWS) |
+| Extended (Part IV–VI) | Skim Q 326–400; hands-on ES2026, Node 24, or MongoDB 8.3 topic |
 | System design | 5 designs: URL shortener, chat, checkout, notifications, RAG search |
 | Portfolio | 2 repos: **production API** + **RAG project** |
 | LeetCode | **48+ mediums** (Q 321–325 checklists) |
@@ -6222,6 +7224,7 @@ Prepare **8 STAR stories** (2 min spoken each):
 | No Postgres at work | Q 258–263 — one exercise enough |
 | No K8s at work | Q 349–354 — read only |
 | No message queues | Q 335–340 — read only |
+| Already strong on security / gRPC / ES2026 | Q 361–400 — skim; deep-dive any weak area |
 
 ---
 
@@ -6240,4 +7243,4 @@ Target interview-ready: **December 2026 / January 2027**.
 
 ---
 
-*Last updated: June 2026 — 360 Q&A total (merged core, Parts I–IV + Appendix)*
+*Last updated: August 5, 2026 — 400 Q&A total (Parts I–VI + Appendix)*

@@ -1523,7 +1523,8 @@ flowchart TD
 | WebSockets at scale? | 37 |
 | Monolith vs microservices? | 39 |
 | Zero-downtime deploy? | 43, 50 |
-| Add AI/RAG to API? | 48 |
+| Add AI/RAG to API? | 48, 81 |
+| ES2026 / Node 24 / Mongo 8.3? | 76–82 |
 
 ---
 
@@ -1531,11 +1532,110 @@ flowchart TD
 
 | Technology | Parts | Topic numbers | Count |
 |------------|-------|---------|-------|
-| **JavaScript** | I, V (Topics 51–63) | 1–8, 51–63 | 21 |
-| **Node.js** | II, IV, V (Topics 64–75), VI (Topics 50) | 9–15, 23–28, 26–27, 64–75, 50 | 30 |
-| **MongoDB** | III, VI (Topics 31) | 16–22, 31 | 8 |
+| **JavaScript** | I, V (Topics 51–63), **VII (76–78, 82)** | 1–8, 51–63, 76–78, 82 | 25 |
+| **Node.js** | II, IV, V (Topics 64–75), VI (Topics 50), **VII (79)** | 9–15, 23–28, 26–27, 64–75, 50, 79 | 31 |
+| **MongoDB** | III, VI (Topics 31), **VII (80–81)** | 16–22, 31, 80–81 | 10 |
 | **Architecture** | VI | 29–49 | 21 |
 
 ---
 
-*Last updated: June 2026 — 75 flowchart topics · Companion to [`interview-prep-2026.md`](./interview-prep-2026.md)*
+## 76. ES2026 — What Shipped (June 30, 2026)
+
+ECMAScript 2026 (17th edition) ratified **June 30, 2026**. Incremental utility release: `Array.fromAsync`, `Math.sumPrecise`, `Error.isError`, `Map.getOrInsert`, `Iterator.concat`, `Uint8Array` Base64/Hex, JSON source access, **Temporal** in spec. See Q381–389 in main guide.
+
+```mermaid
+flowchart LR
+    A[ES2026 ratified Jun 30] --> B[Runtime: Node 24 / Chrome 131+]
+    B --> C{Need polyfill?}
+    C -->|Old Node 20| D[@js-temporal/polyfill etc.]
+    C -->|Node 24 LTS| E[Use native APIs]
+```
+
+---
+
+## 77. Map.getOrInsert — Upsert Without Boilerplate
+
+ES2026 adds `getOrInsert` / `getOrInsertComputed` on Map and WeakMap. Replaces `if (!map.has(k)) map.set(k, v)` patterns. WeakMap variant keeps object-keyed metadata GC-friendly.
+
+```mermaid
+flowchart TD
+    A[getOrInsertComputed key, fn] --> B{key exists?}
+    B -->|Yes| C[return existing value]
+    B -->|No| D[run fn → set → return]
+```
+
+---
+
+## 78. using / await using — Auto-Dispose Resources
+
+Explicit Resource Management: `using` / `await using` dispose at block exit via `Symbol.dispose` / `Symbol.asyncDispose`. Stable in Node 24+. Cleaner than manual try/finally for files, connections, locks.
+
+```mermaid
+flowchart TD
+    A[Enter block] --> B[Acquire resource]
+    B --> C[Use resource]
+    C --> D{Normal exit or throw?}
+    D --> E[Symbol.dispose / asyncDispose]
+    E --> F[Leave block]
+```
+
+---
+
+## 79. Node.js 24 LTS — Production Defaults (Aug 2026)
+
+Node 24 Active LTS since Oct 2025. V8 13.6, npm 11, Undici 7, global URLPattern, stable `--permission`, AsyncLocalStorage on AsyncContextFrame. Default for new APIs in Aug 2026.
+
+```mermaid
+flowchart LR
+    subgraph versions [Aug 2026]
+        N24[Node 24 Active LTS ✓]
+        N22[Node 22 Maintenance]
+        N20[Node 20 EOL soon ✗]
+    end
+    N24 --> Docker[FROM node:24-bookworm-slim]
+```
+
+---
+
+## 80. MongoDB 8.0 → 8.3 Upgrade Path
+
+8.0: performance, Queryable Encryption range queries, ingress queue, multi-collection bulkWrite. **8.3 (May 2026):** +45% reads, +35% writes, `$scoreFusion`, automated embeddings preview, LangGraph.js memory on Atlas.
+
+```mermaid
+flowchart LR
+    A[MongoDB 7.x] --> B[8.0 GA]
+    B --> C[8.3 GA May 2026]
+    C --> D[Atlas AI: vector + text + memory]
+```
+
+---
+
+## 81. $scoreFusion — Hybrid RAG Retrieval
+
+MongoDB 8.3 / Atlas GA: combine vector search + full-text scores with weights. Better than vector-only for queries mixing keywords and semantics. Pairs with Automated Voyage Embeddings on write.
+
+```mermaid
+flowchart TD
+    Q[User query] --> V[Vector pipeline]
+    Q --> T[Text search pipeline]
+    V --> SF[$scoreFusion weighted merge]
+    T --> SF
+    SF --> R[Top-K chunks → LLM context]
+```
+
+---
+
+## 82. Error.isError — Cross-Realm Safe Check
+
+ES2026 `Error.isError` replaces unreliable `instanceof Error` across workers, vm, iframes. Use in global error middleware and micro-frontend error boundaries.
+
+```mermaid
+flowchart TD
+    A[Catch err] --> B{Error.isError err?}
+    B -->|Yes| C[Log stack + cause chain]
+    B -->|No| D[Wrap: new Error String err]
+```
+
+---
+
+*Last updated: August 5, 2026 — 82 flowchart topics · Companion to [`interview-prep-2026.md`](./interview-prep-2026.md)*

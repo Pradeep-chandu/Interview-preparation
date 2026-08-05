@@ -26,7 +26,7 @@
 
 | No. | Topic |
 |-----|-------|
-| [11](#topic-11-nodejs-architecture) | Node.js Architecture |
+| [11](#topic-11-nodejs-architecture) | Node.js Architecture (incl. Node 24 LTS) |
 | [12](#topic-12-node-event-loop) | Node Event Loop |
 | [13](#topic-13-express-request-flow) | Express Request Flow |
 | [14](#topic-14-middleware--next) | Middleware & `next()` |
@@ -176,6 +176,8 @@ flowchart LR
 ---
 
 ## Topic 11. Node.js Architecture
+
+> **Aug 2026:** Use **Node.js 24 LTS** for new projects (V8 13.6, npm 11, Undici 7). See Q80, Q390, Q400 in main guide.
 
 ```mermaid
 flowchart TD
@@ -327,4 +329,4 @@ flowchart TD
 
 ---
 
-*Last updated: June 2026 — 20 basic flowcharts · JavaScript & Node.js only*
+*Last updated: August 5, 2026 — 20 basic flowcharts · JavaScript & Node.js only*
