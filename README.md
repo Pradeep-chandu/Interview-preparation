@@ -11,7 +11,7 @@ Interview preparation notes for **JavaScript**, **Node.js**, and **MongoDB** —
 | [interview-prep-2026.md](./interview-prep-2026.md) | Full **400** interview Q&A with answers and code examples |
 | [brief-topics-flowcharts-2026.md](./brief-topics-flowcharts-2026.md) | **82** topic summaries with Mermaid flowcharts |
 | [basics-js-node-flowcharts-2026.md](./basics-js-node-flowcharts-2026.md) | JS & Node.js basics flowcharts (fresher) |
-| [interview-tricky-qsns-2026.md](./interview-tricky-qsns-2026.md) | Tricky interview questions + Aug 2026 traps |
+| [interview-tricky-qsns-2026.md](./interview-tricky-qsns-2026.md) | **95** tricky interview questions + Aug 2026 traps |
 | [mock/](./mock/) | Mock API routes and sample `db.json` |
 
 ## Topics covered

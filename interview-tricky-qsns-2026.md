@@ -17,6 +17,7 @@
 | **VII** | [MongoDB Tricky Questions](#part-vii--mongodb-tricky-questions) | 61–68 |
 | **VIII** | [Output Prediction Drills](#part-viii--output-prediction-drills) | 69–80 |
 | **IX** | [Aug 2026 Release Traps](#aug-2026-release-traps-8183) | 81–83 |
+| **X** | [Gap-Fill & ES2026 Tricky (Aug 2026)](#part-x--gap-fill--es2026-tricky-aug-2026) | 84–95 |
 
 ---
 
@@ -1073,6 +1074,203 @@ m.getOrInsertComputed('x', () => expensive()); // inserts 99, calls === 2
 
 ---
 
+# Part X — Gap-Fill & ES2026 Tricky (Aug 2026)
+
+> Traps aligned with `interview-prep-2026.md` Part V (Q361–380) and Part VI (Q381–400).
+
+### 84. What happens with `new WeakSet().add(1)`?
+
+**Output:** **`TypeError`** — WeakSet values must be **objects** (not primitives).
+
+**Answer:** Same for `WeakMap.set(1, 'x')`. Only `Set` / `Map` accept primitives.
+
+```javascript
+const ws = new WeakSet();
+ws.add({});     // OK
+ws.add(1);      // TypeError: Invalid value used in weak set
+```
+
+---
+
+### 85. What is `[...new WeakSet([obj])].length`?
+
+**Output:** **TypeError** — WeakSet is **not iterable** (no `Symbol.iterator`).
+
+**Answer:** WeakSet has no `.size`, no `.forEach`, no spread — only `.add`, `.has`, `.delete`.
+
+```javascript
+const obj = {};
+const ws = new WeakSet([obj]);
+ws.size;           // undefined — no size property
+[...ws];           // TypeError: ws is not iterable
+```
+
+---
+
+### 86. After `obj = null`, is `weakMap.get(oldRef)` still reachable?
+
+**Output:** **No** — once the object is GC'd, WeakMap entry disappears (no strong ref).
+
+**Answer:** Unlike `Map`, WeakMap does not keep keys alive. Timing of GC is not deterministic in demos — interview answer is about **eligibility** for collection, not instant deletion.
+
+```javascript
+let obj = { id: 1 };
+const wm = new WeakMap();
+wm.set(obj, 'secret');
+obj = null;
+// wm had key { id: 1 } — when GC runs, entry is removed; wm.has(that object) impossible to test after nulling ref
+```
+
+---
+
+### 87. What does `Promise.any([Promise.reject('a'), Promise.reject('b')])` reject with?
+
+**Output:** **`AggregateError`** with `.errors === ['a', 'b']`
+
+**Answer:** `Promise.any` rejects only when **all** promises reject. Contrast `Promise.race` — first settle wins (fulfill **or** reject).
+
+```javascript
+Promise.any([Promise.reject('a'), Promise.reject('b')])
+  .catch(e => {
+    console.log(e instanceof AggregateError); // true
+    console.log(e.errors); // ['a', 'b']
+  });
+
+Promise.race([Promise.reject('a'), Promise.resolve('b')])
+  .catch(e => console.log(e)); // 'a' — first rejection wins
+```
+
+---
+
+### 88. What happens with `structuredClone({ fn: () => {} })`?
+
+**Output:** **`DataCloneError`** (or DOMException) — functions are **not cloneable**.
+
+**Answer:** `structuredClone` clones structured data (Date, Map, Set, ArrayBuffer, cycles) but rejects functions, symbols (in some cases), and DOM nodes. JSON round-trip also drops functions silently.
+
+```javascript
+structuredClone({ a: 1, d: new Date() });     // OK
+structuredClone({ fn: () => 1 });               // throws
+JSON.parse(JSON.stringify({ fn: () => 1 }));  // { } — fn dropped silently
+```
+
+---
+
+### 89. Prototype pollution — what is `({}).isAdmin` after bad merge?
+
+**Output:** **`true`** if attacker merged `{ "__proto__": { "isAdmin": true } }` into target via vulnerable deep merge.
+
+**Answer:** Polluted `Object.prototype` affects **all** plain objects. Modern `JSON.parse` ignores `__proto__` key (drill #80), but **application-level merge** of user JSON is still dangerous. Fix: schema whitelist, block `__proto__`/`constructor`/`prototype` keys.
+
+```javascript
+function badMerge(target, source) {
+  for (const k of Object.keys(source)) {
+    if (source[k] && typeof source[k] === 'object') {
+      target[k] = badMerge(target[k] || {}, source[k]);
+    } else target[k] = source[k];
+  }
+  return target;
+}
+const user = {};
+badMerge(user, JSON.parse('{"__proto__":{"isAdmin":true}}'));
+console.log({}.isAdmin); // true — security bug
+```
+
+---
+
+### 90. `[3, 1, 2].toSorted()` vs `.sort()` — what is `arr` after each?
+
+**Output:** **`toSorted`** returns new array, **original unchanged**. **`sort`** mutates in place.
+
+**Answer:** ES2023 `toSorted` / `toReversed` / `toSpliced` are immutability-safe — common React/state trap with `.sort()`.
+
+```javascript
+const a = [3, 1, 2];
+const b = a.toSorted((x, y) => x - y);
+console.log(a); // [3, 1, 2] — unchanged
+console.log(b); // [1, 2, 3]
+
+const c = [3, 1, 2];
+c.sort((x, y) => x - y);
+console.log(c); // [1, 2, 3] — mutated
+```
+
+---
+
+### 91. What keys does `Object.groupBy([{ s: null }, { s: undefined }], x => x.s)` produce?
+
+**Output:** **`{ "null": [...], "undefined": [...] }`** — keys are **strings** (property names).
+
+**Answer:** `Object.groupBy` stringifies keys; `null` → `"null"`, `undefined` → `"undefined"`. Use `Map.groupBy` if you need non-string keys.
+
+```javascript
+Object.groupBy([{ s: null }, { s: undefined }], (x) => x.s);
+// { null: [{ s: null }], undefined: [{ s: undefined }] }
+```
+
+---
+
+### 92. MongoDB — `{ $set: { 'items.$[elem].done': true } }` with no matching `arrayFilters`?
+
+**Output:** **No documents modified** — update silently matches 0 array elements (no error).
+
+**Answer:** Always verify `modifiedCount`. `arrayFilters` must match at least one array element per doc.
+
+```javascript
+await Order.updateOne(
+  { _id: orderId },
+  { $set: { 'items.$[elem].done': true } },
+  { arrayFilters: [{ 'elem.sku': 'NONEXISTENT' }] }
+);
+// matchedCount: 1, modifiedCount: 0 — trap for "why didn't it update?"
+```
+
+---
+
+### 93. MongoDB — `'items.$'` updates which array element?
+
+**Output:** **First** element matching the **query filter** on the array field — not all matches.
+
+**Answer:** For multiple matching items use **`items.$[]`** (all) or **`arrayFilters`** (conditional). Classic partial-shipment bug.
+
+```javascript
+// Only first item with sku SKU-1 gets status (positional $)
+await Order.updateOne(
+  { _id: id, 'items.sku': 'SKU-1' },
+  { $set: { 'items.$.status': 'shipped' } }
+);
+// If two line items have SKU-1, only first is updated
+```
+
+---
+
+### 94. User search `"C++"` — why does `{ $regex: userInput }` fail?
+
+**Output:** **`Invalid regular expression`** or wrong matches — `+` is a regex quantifier.
+
+**Answer:** Always escape user input: **`RegExp.escape(userInput)`** (ES2026 / Node 24) or validation whitelist. Also ReDoS risk with nested quantifiers.
+
+```javascript
+const userInput = 'C++ (sale)';
+new RegExp(userInput);              // SyntaxError or wrong pattern
+new RegExp(RegExp.escape(userInput)); // safe literal match
+```
+
+---
+
+### 95. `JSON.parse('{"id":9007199254740993}').id === 9007199254740993`?
+
+**Output:** **`false`** — JSON numbers become IEEE doubles; large int **loses precision**.
+
+**Answer:** ES2026 reviver **`context.source`** or store IDs as strings. Same trap as tricky Q56.
+
+```javascript
+JSON.parse('{"id":9007199254740993}').id; // 9007199254740992 — off by 1
+// Fix: reviver with context.source (ES2026) or quote id in JSON as string
+```
+
+---
+
 ## Study Tips
 
 1. **Run every example** in Node REPL or browser console — muscle memory beats memorization.
@@ -1080,7 +1278,8 @@ m.getOrInsertComputed('x', () => expensive()); // inserts 99, calls === 2
 3. For async, draw the **microtask vs macrotask** queue on paper.
 4. For MongoDB, always ask: **“Does this match missing fields?”**
 5. When comparing arrays/objects in real code, never use `==`/`===` — use deep equality or serialization with known limits.
+6. **Part X (84–95):** WeakMap/WeakSet, Promise.any, MongoDB `$` vs `$[]`, RegExp.escape — tie to main guide Q361–400.
 
 ---
 
-*Last updated: August 5, 2026 · Companion to `interview-prep-2026.md` (400 Q)*
+*Last updated: August 28, 2026 · Companion to `interview-prep-2026.md` (400 Q) · 95 tricky questions*
