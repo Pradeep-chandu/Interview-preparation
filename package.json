@@ -1,0 +1,10 @@
+{
+  "private": true,
+  "description": "Type-checks the TypeScript examples in interview-prep-2026.md. Not an application.",
+  "scripts": {
+    "check:ts": "node scripts/check-ts-examples.mjs"
+  },
+  "devDependencies": {
+    "typescript": "5.7.3"
+  }
+}

@@ -140,7 +140,7 @@
 
 ## 1. Event Loop — Call Stack to Callbacks
 
-JavaScript runs synchronously on a single call stack. When async work finishes, callbacks land in task queues; the event loop moves them to the stack only when the stack is empty. This is why `setTimeout(fn, 0)` never runs before the current synchronous code.
+JavaScript runs synchronously on a single call stack. The loop runs a callback only when that stack is empty, which is why `setTimeout(fn, 0)` never runs before the current function. The chart below is the browser order. In Node, drain `process.nextTick` before promise microtasks, then continue a libuv phase. See topics 9 and 55. Output drills: tricky Q36–Q43.
 
 ```mermaid
 flowchart TD
@@ -711,7 +711,7 @@ flowchart TD
 
 ## 55. process.nextTick vs setImmediate vs setTimeout
 
-In Node: **nextTick** runs before any other async — can starve I/O if abused. **Promise microtasks** run after nextTick queue. **setImmediate** runs in check phase. **setTimeout** runs in timers phase.
+In Node: **nextTick** runs before promise microtasks and can starve I/O if it never empties. **setTimeout** is the timers phase. **setImmediate** is the check phase. At the top level those two have no guaranteed order. Inside an I/O callback, `setImmediate` runs before the next timers phase. Full answer: interview-prep Q150.
 
 ```mermaid
 flowchart TD
@@ -721,7 +721,7 @@ flowchart TD
     D --> E[timers: setTimeout / setInterval]
     E --> F[... poll I/O ...]
     F --> G[check: setImmediate]
-    H[Order: nextTick → Promise → setImmediate → setTimeout 0] -.-> B
+    H[Fixed: nextTick then Promises. Timer vs setImmediate depends on context] -.-> B
 ```
 
 ---

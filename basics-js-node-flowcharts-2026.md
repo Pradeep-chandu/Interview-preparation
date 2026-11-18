@@ -1,7 +1,8 @@
 # JavaScript & Node.js — Basics Flowcharts (2026)
 
-> **Flowcharts only** — for 0–2 years / fresher interviews.  
-> Full explanations: [`interview-prep-2026.md`](./interview-prep-2026.md) · More topics: [`brief-topics-flowcharts-2026.md`](./brief-topics-flowcharts-2026.md)
+> **Flowcharts for redrawing.** Topics 1–2 are the browser loop. Topic 12 is Node.  
+> A 5-year interview uses this page to draw, then answers from [`interview-prep-2026.md`](./interview-prep-2026.md) Q9, Q10, Q150 and output drills in [`interview-tricky-qsns-2026.md`](./interview-tricky-qsns-2026.md).  
+> Assumed runtime: Node.js 22+ behaviour, Node.js 24 LTS as the version named in the README.
 
 ---
 
@@ -22,7 +23,7 @@
 | [9](#topic-9--vs-) | `==` vs `===` |
 | [10](#topic-10-event-propagation) | Event Propagation |
 
-### [Node.js Basics](#part-2--nodejs-basics) · Topics 11–20
+### [Node.js Basics](#part-2--nodejs-basics) · Topics 11–21
 
 | No. | Topic |
 |-----|-------|
@@ -36,6 +37,7 @@
 | [18](#topic-18-streams-pipeline) | Streams Pipeline |
 | [19](#topic-19-error-handling-middleware) | Error Handling |
 | [20](#topic-20-safe-input--validation) | Safe Input & Validation |
+| [21](#topic-21-memory-and-gc) | Memory and garbage collection |
 
 ---
 
@@ -44,6 +46,8 @@
 ---
 
 ## Topic 1. Event Loop
+
+Browser order. Node inserts `process.nextTick` before the promise queue. See topic 12.
 
 ```mermaid
 flowchart TD
@@ -200,7 +204,8 @@ flowchart TD
     D --> E[check — setImmediate]
     E --> F[close callbacks]
     F --> A
-    G[nextTick + Promises] -.->|between phases| A
+    G[1. Drain nextTick] -.->|after the current stack and after each phase| A
+    H[2. Drain promise microtasks] -.->|after nextTick| A
 ```
 
 ---
@@ -314,11 +319,27 @@ flowchart TD
 
 ---
 
+## Topic 21. Memory and garbage collection
+
+V8 collects objects with no path from a root (stack, global, a closure that is still referenced). A Node leak is usually a growing cache, a listener added per request, or a timer that never clears.
+
+```mermaid
+flowchart TD
+    A[Object allocated] --> B{Reachable from a root?}
+    B -->|Yes| C[Stays in the heap]
+    B -->|No| D[Collected on a later GC]
+    E[Per-request listener or unbounded Map] --> C
+    F[Remove listener, cap the cache, clear the timer] --> D
+```
+
+---
+
 ## Quick Lookup
 
 | Question | Topic |
 |----------|-------|
-| Event loop output order? | 1, 2 |
+| Event loop output order? | 1 and 2 for the browser. Topic 12 for Node. |
+| What stays in memory? | 21 |
 | Promise states? | 3 |
 | async/await flow? | 4 |
 | var vs let? | 5, 6 |

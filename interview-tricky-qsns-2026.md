@@ -1,6 +1,10 @@
 # Tricky Interview Q&A — JavaScript · Node.js · MongoDB (2026)
 
-> Edge cases, coercion traps, async surprises, and “gotcha” questions that separate strong candidates from average ones. Each item includes the **expected output**, a clear **why**, and a runnable example.
+> Output and edge-case drills for a 5–6 year backend interview. Concept essays live in [`interview-prep-2026.md`](./interview-prep-2026.md). Company rounds live in [`senior-nodejs-mnc-playbook-2026.md`](./senior-nodejs-mnc-playbook-2026.md).
+>
+> Runtime assumed: Node.js 22+ for `nextTick` before promises, Node.js 24 LTS where an ES2026 API is named.
+>
+> Each numbered item has the output and why. Event-loop items Q36, Q42, and Q43 also list the mistake and the follow-up, because those are the ones panels argue about.
 
 ---
 
@@ -386,13 +390,15 @@ Math.max(1, 2, 3)   // 3
 
 **Output:** `['h', 'e', 'l', 'l', 'o']`
 
-**Answer:** Strings are iterable — spread splits by Unicode code units (surrogate pairs can split incorrectly; use `Array.from` or `[...str]` with awareness for emoji).
+**Answer:** Strings are iterable by Unicode code point. Spread and `Array.from` keep an emoji as one element. `length` and `split('')` count UTF-16 code units, so the same emoji has length 2 and splits into two surrogates.
 
 **Example:**
 ```javascript
 [...'hello']        // ['h','e','l','l','o']
-[...'👋']           // ['\uD83D', '\uDC4B'] — surrogate pair split
-[...'👋'].length    // 2 (not 1)
+[...'👋']           // ['👋'] — one code point
+[...'👋'].length    // 1
+'👋'.length         // 2 — UTF-16 code units
+'👋'.split('')      // two surrogates, not two emoji
 ```
 
 ---
@@ -596,9 +602,11 @@ test();             // 3
 
 ### 36. What is the log order: sync, Promise, setTimeout?
 
+**Difficulty:** Intermediate
+
 **Output:** `sync` → `promise` → `timeout`
 
-**Answer:** Microtasks (Promises, queueMicrotask) run after current sync stack, **before** next macrotask (setTimeout, I/O).
+**Answer:** After the synchronous stack, promise microtasks run before the timer phase.
 
 **Example:**
 ```javascript
@@ -607,6 +615,10 @@ Promise.resolve().then(() => console.log('promise'));
 setTimeout(() => console.log('timeout'), 0);
 // sync, promise, timeout
 ```
+
+**Common mistake:** Inserting `process.nextTick` into this program and still saying the promise runs first. In Node, `nextTick` runs before the promise. See Q43.
+
+**Follow-up:** Add `process.nextTick(() => console.log('tick'))` before the promise. What prints, and which queue is that?
 
 ---
 
@@ -690,23 +702,35 @@ async function load() {
 
 ### 42. What is the log order: setTimeout 0 vs setImmediate (Node)?
 
-**Output:** Depends on context — **inside I/O callback**, `setImmediate` runs before `setTimeout`. At top level, order varies by Node version/event loop phase.
+**Difficulty:** Advanced
+
+**Output:** Inside an I/O callback, `immediate` then `timeout`. At the top level, either order.
+
+**Answer:** `setTimeout` is scheduled for the timers phase. `setImmediate` is scheduled for the check phase. When both are registered from inside `readFile`, the current poll phase is already running, so check happens before the next timers pass. From the main module, the loop may enter timers before check, so the order is not a fact you should bet a job on.
 
 **Example (Node, inside fs callback):**
 ```javascript
-const fs = require('fs');
+const fs = require('node:fs');
 fs.readFile(__filename, () => {
   setTimeout(() => console.log('timeout'), 0);
   setImmediate(() => console.log('immediate'));
 });
-// immediate, timeout (typical)
+// immediate, timeout
 ```
+
+**Common mistake:** Repeating “immediate always wins” because one laptop printed it that way in the main file.
+
+**Follow-up:** Which one do you use when you want to let the loop handle I/O before the next chunk of CPU work? `setImmediate`. Which one must you not recurse without a bound? `process.nextTick`.
 
 ---
 
 ### 43. What is the output of `process.nextTick` vs Promise?
 
-**Output:** `nextTick` runs **before** Promise microtasks in Node
+**Difficulty:** Advanced
+
+**Output:** `nextTick` then `promise`
+
+**Answer:** Node drains the `nextTick` queue before the promise microtask queue, after the current stack and between libuv phases. This has been the Node order for years. It is not the browser model.
 
 **Example:**
 ```javascript
@@ -714,6 +738,10 @@ Promise.resolve().then(() => console.log('promise'));
 process.nextTick(() => console.log('nextTick'));
 // nextTick, promise
 ```
+
+**Common mistake:** Calling `nextTick` a promise microtask. It has its own queue, and a recursive `nextTick` prevents the promise queue and I/O from running.
+
+**Follow-up:** A health check depends on a timer. A library schedules the next `nextTick` from inside `nextTick`. What does the load balancer see?
 
 ---
 
@@ -1001,7 +1029,7 @@ Quick-fire — cover the answer, guess, then check.
 | 76 | `({ length: 0 }).length + 1` | `1` (not `"01"`) |
 | 77 | `String(null)` | `"null"` |
 | 78 | `Number('')` | `0` |
-| 79 | `setInterval(() => {}, 0)` fire rate | Clamped (~1ms min in browsers; Node similar) |
+| 79 | `setInterval(() => {}, 0)` fire rate | Not every 0ms. Browsers clamp nested timers. Node still waits for the timers phase, so a busy loop delays it. Do not use this as a precise clock. |
 | 80 | `JSON.parse('{}').__proto__` | `{}` — modern engines ignore `__proto__` key in JSON.parse |
 
 ---
